@@ -1,0 +1,8 @@
+segment,segment_name,n_customers,pct_customers,avg_monetary,avg_frequency,avg_regularity
+0,Loyal Explorers,509,20.36,3878.22,171.18,0.78
+1,Loyal Explorers,299,11.96,9715.6,255.83,0.88
+2,Wellness Seekers,193,7.72,871.78,37.02,0.25
+3,Fresh Enthusiasts,339,13.56,1233.35,48.22,0.34
+4,Fresh Enthusiasts,524,20.96,942.24,42.69,0.3
+5,Bulk Shoppers,318,12.72,3205.93,56.37,0.41
+6,Loyal Explorers,318,12.72,3392.68,152.45,0.7

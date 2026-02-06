@@ -1,0 +1,53 @@
+track,category,subcategory,variable,description,formula
+Track1,RFM,Recency,recency,Days since last purchase,max(DAY) - last_purchase_day
+Track1,RFM,Recency,recency_weeks,Weeks since last purchase,max(WEEK) - last_purchase_week
+Track1,RFM,Recency,active_last_4w,Active in last 4 weeks (binary),1 if last_week >= max_week - 4 else 0
+Track1,RFM,Recency,active_last_12w,Active in last 12 weeks (binary),1 if last_week >= max_week - 12 else 0
+Track1,RFM,Recency,days_between_purchases_avg,Average days between purchases,mean(diff(purchase_days))
+Track1,RFM,Recency,days_between_purchases_std,Std dev of days between purchases,std(diff(purchase_days))
+Track1,RFM,Frequency,frequency,Total number of visits (baskets),nunique(BASKET_ID)
+Track1,RFM,Frequency,frequency_per_week,Average visits per week,frequency / tenure_weeks
+Track1,RFM,Frequency,frequency_per_month,Average visits per month,frequency_per_week × 4.33
+Track1,RFM,Frequency,transaction_count,Total number of transactions,count(transactions)
+Track1,RFM,Frequency,weeks_with_purchase,Number of weeks with purchases,nunique(WEEK_NO)
+Track1,RFM,Frequency,purchase_regularity,Purchase regularity (0-1),weeks_with_purchase / tenure_weeks
+Track1,RFM,Monetary,monetary_sales,Total sales (after discount),sum(SALES_VALUE)
+Track1,RFM,Monetary,monetary_actual,Total actual payment,sum(ACTUAL_SPENT)
+Track1,RFM,Monetary,monetary_avg_basket_sales,Average basket sales,mean(basket_sales)
+Track1,RFM,Monetary,monetary_avg_basket_actual,Average basket payment,mean(basket_actual)
+Track1,RFM,Monetary,monetary_std,Basket sales standard deviation,std(basket_sales)
+Track1,RFM,Monetary,monetary_per_week,Average sales per week,monetary_sales / tenure_weeks
+Track1,RFM,Monetary,coupon_savings_ratio,Coupon savings ratio,total_coupon_disc / monetary_sales
+Track1,Behavioral,Price Sensitivity,discount_rate,Overall discount rate,total_discount / (sales + total_discount)
+Track1,Behavioral,Price Sensitivity,discount_usage_pct,Proportion of discounted transactions,discount_transactions / total_transactions
+Track1,Behavioral,Brand,private_label_ratio,Private label purchase ratio,PL_count / (PL_count + NB_count)
+Track1,Behavioral,Basket,n_departments,Number of departments visited,nunique(DEPARTMENT)
+Track1,Behavioral,Basket,n_products,Number of unique products purchased,nunique(PRODUCT_ID)
+Track1,Behavioral,Basket,avg_items_per_basket,Average items per basket,total_quantity / n_baskets
+Track1,Behavioral,Basket,avg_products_per_basket,Average unique products per basket,n_products / n_baskets
+Track1,Category,Grocery,share_grocery,Grocery category sales share,grocery_sales / total_sales
+Track1,Category,Fresh,share_fresh,Fresh category sales share,fresh_sales / total_sales
+Track1,Category,Bakery,share_bakery,Bakery category sales share,bakery_sales / total_sales
+Track1,Category,Health&Beauty,share_health_beauty,Health & Beauty category sales share,hb_sales / total_sales
+Track1,Category,Alcohol,share_alcohol,Alcohol category sales share,alcohol_sales / total_sales
+Track1,Category,Other,share_other,Other categories sales share,other_sales / total_sales
+Track1,Time,Coverage,week_coverage,Purchase week coverage ratio,n_weeks_active / (week_range + 1)
+Track2,Exposure,Display,display_exposure_rate,Rate of purchasing display-exposed products,display_exposed_count / n_transactions
+Track2,Exposure,Display,display_intensity_avg,Average display intensity when exposed (1-10),mean(display_level) when exposed
+Track2,Exposure,Mailer,mailer_exposure_rate,Rate of purchasing mailer-exposed products,mailer_exposed_count / n_transactions
+Track2,Campaign,Targeting,targeted_typeA,Targeted by TypeA campaign (binary),1 if targeted by TypeA else 0
+Track2,Campaign,Targeting,targeted_typeB,Targeted by TypeB campaign (binary),1 if targeted by TypeB else 0
+Track2,Campaign,Targeting,targeted_typeC,Targeted by TypeC campaign (binary),1 if targeted by TypeC else 0
+Track2,Campaign,Count,n_campaigns_targeted,Total number of campaigns targeted,sum(TypeA + TypeB + TypeC)
+Track2,Campaign,Count,n_typeA_campaigns,Number of TypeA campaigns targeted,count(TypeA campaigns)
+Track2,Outcome,Redemption,redemption_count,Number of coupon redemptions,count(coupon redemptions)
+Track2,Outcome,Redemption,redemption_any,Any coupon redemption (binary),1 if redemption_count > 0 else 0
+Track2,Outcome,Purchase,purchase_amount,Purchase amount in campaign period,sum(SALES_VALUE) in campaign period
+Track2,Outcome,Purchase,purchase_count,Number of visits in campaign period,nunique(BASKET_ID) in campaign period
+Track2,Demographic,Age,AGE_DESC,Age group,"19-24, 25-34, 35-44, 45-54, 55-64, 65+"
+Track2,Demographic,Marital,MARITAL_STATUS_CODE,Marital status,"A(Single), B(Married), U(Unknown)"
+Track2,Demographic,Income,INCOME_DESC,Income level,Under 15K ~ 250K+
+Track2,Demographic,Home,HOMEOWNER_DESC,Home ownership,"Homeowner, Renter, Unknown"
+Track2,Demographic,Composition,HH_COMP_DESC,Household composition,"1 Adult, 2 Adults, ..."
+Track2,Demographic,Size,HOUSEHOLD_SIZE_DESC,Household size,"1, 2, 3, 4, 5+"
+Track2,Demographic,Kids,KID_CATEGORY_DESC,Presence of children,"None, 1, 2, 3+"

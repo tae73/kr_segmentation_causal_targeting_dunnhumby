@@ -1,0 +1,5 @@
+conditions,leaf_value,n_samples,target,decision,path,sample_pct
+"['monetary_avg_basket_sales <= 31.21', 'n_products > 684.50']",258.19508478358057,11,True,TARGET,monetary_avg_basket_sales <= 31.21 AND n_products > 684.50,0.02263374485596708
+"['monetary_avg_basket_sales > 31.21', 'monetary_sales > 1835.71']",-103.0043463048205,92,False,NO TARGET,monetary_avg_basket_sales > 31.21 AND monetary_sales > 1835.71,0.18930041152263374
+"['monetary_avg_basket_sales <= 31.21', 'n_products <= 684.50']",45.72696004731681,269,True,TARGET,monetary_avg_basket_sales <= 31.21 AND n_products <= 684.50,0.5534979423868313
+"['monetary_avg_basket_sales > 31.21', 'monetary_sales <= 1835.71']",-5.021957585104932,114,False,NO TARGET,monetary_avg_basket_sales > 31.21 AND monetary_sales <= 1835.71,0.2345679012345679

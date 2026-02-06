@@ -1,0 +1,221 @@
+{
+  "created_at": "2026-01-13T09:50:51.667274",
+  "files": {
+    "features_track1.parquet": {
+      "rows": 2500,
+      "columns": [
+        "household_key",
+        "recency",
+        "recency_weeks",
+        "active_last_4w",
+        "active_last_12w",
+        "days_between_purchases_avg",
+        "days_between_purchases_std",
+        "frequency",
+        "frequency_per_week",
+        "frequency_per_month",
+        "transaction_count",
+        "weeks_with_purchase",
+        "purchase_regularity",
+        "monetary_sales",
+        "monetary_actual",
+        "monetary_avg_basket_sales",
+        "monetary_avg_basket_actual",
+        "monetary_std",
+        "monetary_per_week",
+        "coupon_savings_ratio",
+        "tenure",
+        "tenure_weeks",
+        "discount_rate",
+        "discount_usage_pct",
+        "private_label_ratio",
+        "n_departments",
+        "n_products",
+        "avg_items_per_basket",
+        "avg_products_per_basket",
+        "share_alcohol",
+        "share_bakery",
+        "share_fresh",
+        "share_grocery",
+        "share_health_beauty",
+        "share_other",
+        "week_coverage"
+      ],
+      "period": "Week 1-102 (full)"
+    },
+    "features_track2.parquet": {
+      "rows": 2457,
+      "columns": [
+        "household_key",
+        "recency",
+        "recency_weeks",
+        "active_last_4w",
+        "active_last_12w",
+        "days_between_purchases_avg",
+        "days_between_purchases_std",
+        "frequency",
+        "frequency_per_week",
+        "frequency_per_month",
+        "transaction_count",
+        "weeks_with_purchase",
+        "purchase_regularity",
+        "monetary_sales",
+        "monetary_actual",
+        "monetary_avg_basket_sales",
+        "monetary_avg_basket_actual",
+        "monetary_std",
+        "monetary_per_week",
+        "coupon_savings_ratio",
+        "tenure",
+        "tenure_weeks",
+        "discount_rate",
+        "discount_usage_pct",
+        "private_label_ratio",
+        "n_departments",
+        "n_products",
+        "avg_items_per_basket",
+        "avg_products_per_basket",
+        "share_alcohol",
+        "share_bakery",
+        "share_fresh",
+        "share_grocery",
+        "share_health_beauty",
+        "share_other",
+        "week_coverage",
+        "display_exposure_rate",
+        "display_intensity_avg",
+        "mailer_exposure_rate",
+        "targeted_typeA",
+        "targeted_typeB",
+        "targeted_typeC",
+        "n_campaigns_targeted",
+        "n_typeA_campaigns",
+        "redemption_count",
+        "redemption_any",
+        "purchase_amount",
+        "purchase_count",
+        "HOMEOWNER_DESC",
+        "KID_CATEGORY_DESC"
+      ],
+      "base_features_period": "Week 1-31 (pre-treatment)",
+      "outcome_period": "Week 32-102 (campaign)"
+    },
+    "features_value.parquet": {
+      "rows": 2500,
+      "columns": [
+        "recency",
+        "recency_weeks",
+        "active_last_4w",
+        "active_last_12w",
+        "days_between_purchases_avg",
+        "days_between_purchases_std",
+        "frequency",
+        "frequency_per_week",
+        "frequency_per_month",
+        "transaction_count",
+        "weeks_with_purchase",
+        "purchase_regularity",
+        "monetary_sales",
+        "monetary_actual",
+        "monetary_avg_basket_sales",
+        "monetary_avg_basket_actual",
+        "monetary_std",
+        "monetary_per_week",
+        "coupon_savings_ratio",
+        "week_coverage"
+      ]
+    },
+    "features_need.parquet": {
+      "rows": 2500,
+      "columns": [
+        "discount_rate",
+        "discount_usage_pct",
+        "private_label_ratio",
+        "n_departments",
+        "n_products",
+        "avg_items_per_basket",
+        "avg_products_per_basket",
+        "share_grocery",
+        "share_fresh",
+        "share_bakery",
+        "share_health_beauty",
+        "share_alcohol",
+        "share_other"
+      ]
+    }
+  },
+  "feature_groups": {
+    "recency": [
+      "recency",
+      "recency_weeks",
+      "active_last_4w",
+      "active_last_12w",
+      "days_between_purchases_avg",
+      "days_between_purchases_std"
+    ],
+    "frequency": [
+      "frequency",
+      "frequency_per_week",
+      "frequency_per_month",
+      "transaction_count",
+      "weeks_with_purchase",
+      "purchase_regularity"
+    ],
+    "monetary": [
+      "monetary_sales",
+      "monetary_actual",
+      "monetary_avg_basket_sales",
+      "monetary_avg_basket_actual",
+      "monetary_std",
+      "monetary_per_week",
+      "coupon_savings_ratio"
+    ],
+    "behavioral": [
+      "discount_rate",
+      "discount_usage_pct",
+      "private_label_ratio",
+      "n_departments",
+      "n_products",
+      "avg_items_per_basket",
+      "avg_products_per_basket"
+    ],
+    "category": [
+      "share_grocery",
+      "share_fresh",
+      "share_bakery",
+      "share_health_beauty",
+      "share_alcohol",
+      "share_other"
+    ],
+    "time": [
+      "week_coverage"
+    ],
+    "exposure": [
+      "display_exposure_rate",
+      "display_intensity_avg",
+      "mailer_exposure_rate"
+    ],
+    "campaign": [
+      "targeted_typeA",
+      "targeted_typeB",
+      "targeted_typeC",
+      "n_campaigns_targeted",
+      "n_typeA_campaigns"
+    ],
+    "outcome": [
+      "redemption_count",
+      "redemption_any",
+      "purchase_amount",
+      "purchase_count"
+    ],
+    "demographic": [
+      "AGE_DESC",
+      "MARITAL_STATUS_CODE",
+      "INCOME_DESC",
+      "HOMEOWNER_DESC",
+      "HH_COMP_DESC",
+      "HOUSEHOLD_SIZE_DESC",
+      "KID_CATEGORY_DESC"
+    ]
+  }
+}
