@@ -1,5 +1,52 @@
 # Heterogeneous Treatment Effects를 활용한 Causal Targeting: 리테일 캠페인 최적화 사례 연구
 
+**🇰🇷 한국어** | [🇺🇸 English](track2_report.en.md) | [← README로 돌아가기](../README.md)
+
+---
+
+## 한눈에 보기 (TL;DR)
+
+> **3줄 요약**
+> 1. Dunnhumby 리테일 데이터(2,500가구·~2.6M 거래·102주)에서 TypeA 캠페인의 **이질적 처치효과(CATE)** 를 추정하고 최적 타겟팅 정책을 도출한다.
+> 2. **CausalForestDML** 을 주 모델로 선택(최고 AUUC라서가 아니라 **저분산 + 그럴듯한 양의 분포** 때문) → Breakeven CATE **$42.43** 기준 상위 **31.3%(486명 중 152명)** 타겟팅 시 **+$2,426 수익 / 125% ROI**.
+> 3. 단, **심각한 Positivity Violation(PS AUC 0.989, Overlap 17%)** 과 **Refutation Test 실패** 때문에 모든 추정치는 **확정이 아니라 가설 생성(hypothesis-generating)** 이며, **A/B Test 로 검증**해야 한다.
+
+### 핵심 숫자 (Key Numbers)
+
+| 항목 | 값 | 비고 |
+|------|-----|------|
+| 선택 모델 | **CausalForestDML** | 저분산·plausible 분포 (최고 AUUC 아님) |
+| Breakeven CATE | **$42.43** | = cost $12.73 / margin 0.30 |
+| **최적 정책** | **31.3% (152/486)** | **+$2,426 / ROI 125%** |
+| 전체 타겟팅 (100%) | 486명 | **-$4,659 / ROI -75%** |
+| 현행 관행 (62.1%) | 302명 | **-$3,402 / ROI -88%** |
+| 개선 (최적 vs 전체) | **+$7,085** | 손실 → 흑자 전환 |
+| Positivity | **PS AUC 0.989** | Overlap [0.1,0.9] = **17%** |
+| Covariate Balance | 9/21 균형 | 대다수 불균형 |
+| Refutation | **실패 (FAIL)** | Placebo 0.747 / Subset 0.561 |
+| 검증 설계 | **A/B n=5,748** | 80% Power, MDE ~$34 |
+
+### Hero Figures
+
+![ROI Curves](../results/figures/roi_curves.png)
+*고객의 약 31%에서 수익이 최대화되고, 그 이후 음의 CATE 고객이 누적되며 수익이 손실로 전환되는 ROI Curve.*
+
+![CATE by Segment](../results/figures/cate_by_segment_purchase_amount.png)
+*세그먼트별 CATE — VIP Heavy / Bulk Shoppers(고가치 고객)가 음의 효과를 보이는 반직관적 패턴.*
+
+### 목차 (Navigation)
+
+- **[1. 서론](#1-서론)** — 문제 정의, Causal Framework, 연구 설계
+- **[2. 방법론](#2-방법론)** — 데이터, Positivity 평가, ATE/CATE 추정, Policy Learning
+- **[3. 결과](#3-결과)** — Positivity, ATE, CATE 모델 선택, 검증, Policy 성과, 세그먼트 분석
+- **[4. 논의](#4-논의)** — 주요 발견, 한계점, 권고(A/B 설계 포함)
+- **[5. 결론](#5-결론)**
+- **[부록](#부록-기술적-세부사항)** — 파라미터·방정식·PS 영역별 분해·민감도 그리드 (가장 밀도 높은 기술 디테일)
+
+> 읽기 가이드: **30초** → 위 TL;DR + Key Numbers / **5분** → §1~§3 본문 / **30분** → 부록의 PS 영역별 분해·민감도·세그먼트 전략.
+
+---
+
 ## 요약
 
 본 분석은 리테일 마케팅 캠페인의 Heterogeneous Treatment Effects (HTE)를 추정하고 최적 타겟팅 정책을 도출하기 위해 Causal Inference 방법론을 적용한다. Dunnhumby "The Complete Journey" 데이터셋을 활용하여, Clean Causal Identification 설계 하에 첫 번째 TypeA 캠페인 노출을 기준으로 2,430명의 고객 (Treatment 1,511명, Control 919명)을 분석하였다.
@@ -9,7 +56,7 @@
 - **Average Treatment Effect (ATE)**: Trimmed 샘플에서 고객당 $20-40
 - **Optimal Targeting**: 고객의 31.3% 타겟팅 시 $2,426 수익 (125% ROI)
 - **반직관적 인사이트**: VIP Heavy와 Bulk Shoppers (고가치 고객) 가 음의 CATE를 보여 과다 타겟팅 시사
-- **전체 고객 타겟팅 시 $4,657 손실** 발생 (Negative Responder로 인함)
+- **전체 고객 타겟팅 시 $4,659 손실** 발생 (Negative Responder로 인함)
 
 **권고사항:**
 1. VIP Heavy 및 Bulk Shopper 세그먼트에 대한 TypeA 타겟팅 축소
@@ -139,6 +186,7 @@ XGBoost Classifier로 5-Fold Cross-Validation을 통해 Propensity Score를 추�
 **Double Machine Learning:**
 - **LinearDML**: Nuisance 추정을 통한 선형 CATE
 - **CausalForestDML**: Forest를 통한 비모수적 CATE
+- **NonParamDML**: 완전 비모수 Final Stage CATE
 
 **Hyperparameter Tuning:**
 - Optuna TPE Sampler
@@ -223,7 +271,7 @@ Policy Learner는 Covariates X로부터 직접 Treatment 규칙을 학습하는 
 | AIPW | $24 | [-$56, $104] | 중간 |
 | OLS | $65 | [$29, $102] | 선형 가정 |
 | DML | -$65 | [-$220, $90] | 불안정 |
-| **ATO** | **$60** | [-$15, $111] | **Overlap 집중** |
+| **ATO** | **$60** | [-$14, $134] | **Overlap 집중** |
 
 ![ATE Comparison](../results/figures/ate_comparison_purchase_amount.png)
 *Figure 3: Positivity Violation으로 인한 20배 변동을 보여주는 방법별 ATE 추정.*
@@ -247,43 +295,53 @@ Policy Learner는 Covariates X로부터 직접 Treatment 규칙을 학습하는 
 
 **CATE 요약 통계 (Test Set, Purchase amount, n=486):**
 
-| 모델 | 평균 CATE | 표준편차 | AUUC | 안정성 |
-|------|-----------|----------|------|--------|
-| **CausalForestDML** | **+$10** | **$88** | **396.3** | 최고 |
-| T-Learner | -$71 | $281 | 359.3 | 높은 분산 |
-| S-Learner | -$0.45 | $49 | 297.5 | 안정적 |
-| X-Learner | -$21 | $148 | 257.4 | 중간 |
-| LinearDML | -$91 | $851 | 279.0 | 극단적 분산 |
+| 모델 | 평균 CATE | 표준편차 | AUUC | % 양(+) |
+|------|-----------|----------|------|---------|
+| **CausalForestDML** | **+$15** | **$52** | 271.6 | **78%** |
+| LinearDML | -$139 | $452 | **357.0 (최고)** | 42% |
+| NonParamDML | +$1.1M (발산) | 매우 큼 | 304.4 | 64% |
+| S-Learner | -$21 | $46 | 289.5 | 21% |
+| X-Learner | -$96 | $208 | 218.5 | 38% |
+| T-Learner | -$200 | $397 | 212.0 | 43% |
+
+*참고: CausalForestDML의 전체 486 코호트 평균 CATE는 +$10으로 일관되며, 본 보고서의 헤드라인 평균값으로 인용 가능하다.*
 
 ![CATE Distribution](../results/figures/cate_distribution_purchase_amount.png)
-*Figure 5: 모델별 CATE 분포. CausalForestDML이 가장 안정적인 분포를 보임.*
+*Figure 5: 모델별 CATE 분포. CausalForestDML이 가장 안정적이고 그럴듯한(plausible) 분포를 보임.*
 
 ![Uplift Curves - Purchase Amount](../results/figures/uplift_auuc_purchase_amount.png)
-*Figure 6: Purchase Amount 기준 AUUC - CausalForestDML이 최고 Uplift 달성.*
+*Figure 6: Purchase Amount 기준 AUUC. 순위 품질(AUUC)만 보면 LinearDML(357.0)이 가장 높으나, 그 분포는 불안정(평균 -$139, std $452)하다. CausalForestDML(271.6)은 AUUC가 더 낮지만 분산이 작고(+$15, std $52) 분포가 그럴듯하여 실무 배포에 적합.*
 
 ![Uplift Curves - Purchase Count](../results/figures/uplift_auuc_purchase_count.png)
 *Figure 7: Purchase Count 기준 AUUC - 모델별 Uplift 비교.*
 
 **모델 선택 상세 근거:**
 
-| 기준 | CausalForestDML | LinearDML | T-Learner | X-Learner | S-Learner |
-|------|-----------------|-----------|-----------|-----------|-----------|
-| **AUUC** | **396.3 (최고)** | 279.0 | 359.3 | 257.4 | 297.5 |
-| **분산 안정성** | **$88 (최저)** | $851 | $281 | $148 | $49 |
-| **BLP Test p-value** | 0.094 | 0.070 | 0.243 | **0.005** | 0.941 |
-| **평균 CATE 방향** | **양(+)** | 음(-) | 음(-) | 음(-) | 중립 |
+| 기준 | CausalForestDML | LinearDML | NonParamDML | T-Learner | X-Learner | S-Learner |
+|------|-----------------|-----------|-------------|-----------|-----------|-----------|
+| **AUUC** | 271.6 | **357.0 (최고)** | 304.4 | 212.0 | 218.5 | 289.5 |
+| **평균 CATE** | **+$15** | -$139 | +$1.1M (발산) | -$200 | -$96 | -$21 |
+| **표준편차** | **$52 (최저급)** | $452 | 매우 큼 | $397 | $208 | $46 |
+| **% 양(+)** | **78%** | 42% | 64% | 43% | 38% | 21% |
+| **BLP Test p-value** | 0.094 | 0.070 | — | 0.243 | **0.005** | 0.941 |
+| **분포 plausibility** | **높음** | 낮음 (음의 평균·극단 분산) | 낮음 (발산) | 낮음 | 낮음 | 낮음 (79% 음수) |
 
-**CausalForestDML 선택 근거:**
+**CausalForestDML 선택 근거 (정직한 재구성):**
 
-1. **AUUC 최고 (396.3)**: 타겟팅 순위 품질이 가장 우수. AUUC는 "CATE 순위대로 타겟팅했을 때 얻는 누적 Uplift"를 측정하므로, 실무 타겟팅에서 가장 중요한 메트릭.
+> **핵심:** CausalForestDML은 **최고 AUUC라서 선택된 것이 아니다.** 메인 런에서 최고 AUUC는 LinearDML(357.0)이며, CausalForestDML(271.6)은 AUUC 기준 4위다. 그럼에도 CausalForestDML을 주 모델로 택한 이유는 **안정성(저분산)과 분포의 그럴듯함(plausibility)** 을 우선했기 때문이다.
 
-2. **분산 안정성 최고 ($88)**: LinearDML ($851)과 비교해 10배 안정적. 실무 배포 시 예측 일관성이 중요한데, 극단적 분산은 신뢰성을 저하.
+1. **유일하게 저분산 + plausible 분포를 동시에 만족.** CausalForestDML은 평균 CATE +$10~15, 표준편차 $52, 양의 CATE 비율 78%로 — 캠페인이 평균적으로 (전부는 아니어도) 효과가 있어야 한다는 사전 지식과 부합하는 분포를 보인다.
 
-3. **양의 평균 CATE**: 마케팅 상식과 부합. 캠페인이 평균적으로 효과 있어야 한다는 사전 지식(Prior)을 고려할 때, 음의 평균 CATE를 보이는 모델은 모델 오차 가능성이 높음.
+2. **AUUC 상위 모델들은 사용 불가.** 최고 AUUC인 **LinearDML은 평균 -$139 / std $452** 로 극단적으로 불안정하고, **NonParamDML은 +$1.1M로 발산**한다. 순위 품질 지표(AUUC)는 높아도, 추정 분포 자체가 배포할 수 없는 수준이다.
 
-**주의사항:**
-- BLP Test p-value = 0.094로 경계선. X-Learner (p=0.005)가 통계적으로 더 유의한 이질성을 보이나, AUUC와 분산 측면에서 CausalForestDML이 실무적으로 우수.
+3. **S-Learner는 분산은 비슷하나 분포가 비현실적.** S-Learner는 std $46으로 분산은 낮지만 양의 CATE 비율이 21%에 불과 — 즉 **고객의 79%가 음의 효과**를 갖는다는 시사로, 캠페인 목적과 충돌하는 비현실적 분포다.
+
+4. **Positivity Violation 하의 우선순위.** PS AUC 0.989의 심각한 Overlap 결핍 하에서는 raw AUUC보다 **안정성 + 분포의 그럴듯함**을 우선하는 것이 합리적이다. AUUC는 순위 품질일 뿐, 추정치의 신뢰성·배포 가능성을 보장하지 않는다.
+
+**주의사항 (정직성 보강):**
+- BLP Test p-value = 0.094로 **경계선**. X-Learner (p=0.005)가 통계적으로 더 유의한 이질성을 보이나, X-Learner는 평균 -$96 / std $208로 분포가 불안정하여 정책용으로 부적합하다. 즉 "통계적으로 가장 유의한 이질성"과 "배포 가능한 안정적 분포"가 일치하지 않으며, 본 분석은 후자를 우선한다.
 - S-Learner (p=0.941)는 이질성을 거의 감지하지 못함 → CATE 추정에 부적합.
+- 이러한 모델 간 불일치 자체가 Positivity Violation 하에서 CATE 추정이 본질적으로 불안정함을 보여주며, 본 결과를 **가설 생성적**으로 다루어야 하는 근거다.
 
 ### 3.4 검증 결과
 
@@ -301,48 +359,40 @@ Policy Learner는 Covariates X로부터 직접 Treatment 규칙을 학습하는 
 
 | 테스트 | 메트릭 | 임계값 | 상태 |
 |--------|--------|--------|------|
-| Placebo Treatment (Amount) | 0.747 | < 0.5 | **실패** |
+| Placebo Treatment (Amount) | 0.747 | < 0.5 | **실패 (FAIL)** |
 | Placebo Treatment (Visits) | 0.052 | < 0.5 | 통과 |
-| Subset Stability | 0.561 | > 0.7 | **실패** |
+| Subset Stability | 0.561 | > 0.7 | **실패 (FAIL)** |
 
 ![Refutation Tests](../results/figures/refutation_tests.png)
 *Figure 8: Refutation Test 결과. Purchase Amount 모델이 불안정성을 보임.*
 
-**해석:**
-- Purchase Amount 모델이 일부 Spurious Correlation을 포착 (Placebo Ratio = 0.75)
-- Random Subset 간 모델 불안정성
-- 배포 전 A/B Testing으로 결과 검증 필요
+**해석 (정직하게 — 실패를 숨기지 않음):**
+- Purchase Amount 모델이 일부 Spurious Correlation을 포착 (Placebo Ratio = 0.747, 임계값 0.5 초과 → **실패**)
+- Random Subset 간 모델 불안정성 (Subset Stability = 0.561, 임계값 0.7 미달 → **실패**)
+- 이 실패는 **Positivity Violation 하에서 예상되는(expected)** 결과다. 본 분석은 이를 은폐·완화하지 않으며, 모든 CATE/정책 추정치는 **확정이 아니라 가설 생성적**이고 **반드시 A/B Test로 확정**되어야 한다.
 
 ### 3.5 Policy 성과
 
-**타겟팅 비율별 ROI:**
+**Policy 비교 (정책별 — policy_comparison 기준):**
 
-| Target % | N | Profit | ROI | 상태 |
-|----------|---|--------|-----|------|
-| 5% | 24 | $1,263 | 413% | Conservative |
-| 10% | 48 | $1,749 | 286% | High ROI |
-| 20% | 97 | $2,260 | 183% | 좋은 균형 |
-| **31.3%** | **152** | **$2,426** | **125%** | **최적** |
-| 50% | 243 | $2,123 | 69% | 체감 |
-| 100% | 486 | **-$4,657** | **-75%** | **손실** |
+| Policy | 기준 | N | Target % | Profit | ROI | 특징 |
+|--------|------|---|----------|--------|-----|------|
+| **CATE > Breakeven** | Point Est > $42.43 | **152** | **31.3%** | **+$2,426** | **125%** | **최적** |
+| Top 20% CATE | 예산 제약 | 97 | 20.0% | +$2,259 | 183% | 가장 높은 ROI (규모 정책 중) |
+| Conservative | Lower CI > $42.43 | 3 | 0.6% | +$188 | 493% | A/B 전 초안전 |
+| Risk-Adjusted (30%) | CE-CATE(λ=0.3) | 54 | 11.1% | +$1,603 | 233% | 균형 |
+| PolicyTree (Tuned) | 학습된 규칙 | 130 | 26.7% | +$1,684 | 102% | 해석 가능 규칙 |
+| CATE > 0 | 양의 CATE 전체 | 314 | 64.6% | +$1,447 | 36% | 과다 포함 |
+| Current Practice | 현행 관행 | 302 | 62.1% | **-$3,402** | **-88%** | 손실 |
+| Full Targeting | 전체 | 486 | 100% | **-$4,659** | **-75%** | 손실 |
 
 ![ROI Curves](../results/figures/roi_curves.png)
-*Figure 9: 고객의 약 30%에서 최적 타겟팅을 보여주는 ROI Curves.*
-
-**Policy 비교:**
-
-| Policy | 기준 | Target % | Profit | ROI |
-|--------|------|----------|--------|-----|
-| **CATE > Breakeven** | Point Est > $42.43 | 31.3% | $2,426 | 125% |
-| **Conservative** | Lower CI > $42.43 | 5.6% | $1,343 | 391% |
-| Top 30% | Percentile | 30% | $2,423 | 131% |
-| PolicyTree | 학습된 규칙 | 22% | $1,710 | 35% |
-| All Customers | — | 100% | -$4,657 | -75% |
+*Figure 9: 고객의 약 31%에서 최적 타겟팅을 보여주는 ROI Curves.*
 
 ![Policy Comparison](../results/figures/policy_comparison.png)
 *Figure 10: Policy 성과 비교.*
 
-**핵심 인사이트:** 전체 고객 타겟팅은 음의 CATE 고객 (VIP Heavy, Bulk Shoppers)이 양의 효과를 상쇄하여 $4,657 손실을 초래한다.
+**핵심 인사이트:** 전체 고객 타겟팅(486명, 100%)은 음의 CATE 고객 (VIP Heavy, Bulk Shoppers)이 양의 효과를 상쇄하여 **-$4,659 손실(ROI -75%)** 을 초래한다. 최적 정책(31.3%, +$2,426) 대비 손익 개선폭은 **+$7,085** 다. 현행 관행(62.1%, 302명)도 -$3,402(ROI -88%)로 손실이며, 핵심은 단순히 "더 많이/적게"가 아니라 **누구를** 타겟팅하느냐다.
 
 **추출된 타겟팅 규칙:**
 
@@ -386,8 +436,8 @@ Policy Learner는 Covariates X로부터 직접 Treatment 규칙을 학습하는 
 
 | Policy | Target % | Profit | ROI | 특징 |
 |--------|----------|--------|-----|------|
-| CATE > Breakeven | 31.3% | $2,426 | 125% | 개별 CATE 직접 사용 |
-| PolicyTree | 26.7% | $1,684 | 102% | X → Target 학습 |
+| CATE > Breakeven | 31.3% | +$2,426 | 125% | 개별 CATE 직접 사용 |
+| PolicyTree (Tuned) | 26.7% | +$1,684 | 102% | X → Target 학습 |
 | DRPolicyTree | 68.5% | -$4,485 | -53% | Trivial Solution |
 
 **PolicyTree vs CATE Threshold 성과 차이 분석:**
@@ -397,7 +447,7 @@ Policy Learner는 Covariates X로부터 직접 Treatment 규칙을 학습하는 
 | **입력** | 연속적 CATE 추정치 | Covariates X |
 | **정보 흐름** | X → CATE(X) → 1(CATE>BE) | X → 1(Target) |
 | **Target %** | 31.3% | 26.7% |
-| **Profit** | $2,426 | $1,684 |
+| **Profit** | +$2,426 | +$1,684 |
 | **ROI** | 125% | 102% |
 
 **성과 차이의 근본 원인:**
@@ -429,15 +479,17 @@ DRPolicyTree는 Doubly Robust 손실 함수를 사용하나, Positivity Violatio
 
 **고객 세그먼트별 CATE:**
 
-| 세그먼트 | N | 평균 CATE | 95% CI | 액션 |
+> **주의 (N 라벨링):** 아래 `N`은 **Track-2 분석 코호트(486명)** 기준 세그먼트별 인원이며, Track-1 전체 세그먼트 크기(예: VIP Heavy 299명, Bulk Shoppers 318명)와는 **다른 수치**다. 혼동하지 말 것.
+
+| 세그먼트 | N (486 코호트) | 평균 CATE | 95% CI | 액션 |
 |----------|---|-----------|--------|------|
-| Regular+H&B | 62 | +$34 | [$12, $56] | 유지/확대 |
-| Active Loyalists | 97 | +$33 | [$18, $48] | 유지 |
-| Light Grocery | 91 | +$30 | [$8, $52] | Test & Learn |
-| Fresh Lovers | 73 | +$27 | [$5, $49] | Test & Learn |
+| Regular+H&B | 62 | +$34 | [$12, $56] | Test & Learn (lean expand) |
+| Active Loyalists | 97 | +$33 | [$18, $48] | Test & Learn (lean expand) |
+| Light Grocery | 91 | +$30 | [$8, $52] | Test & Learn (expand) |
+| Fresh Lovers | 73 | +$27 | [$5, $49] | Test & Learn (expand) |
 | Lapsed H&B | 27 | +$19 | [-$12, $50] | Test & Learn |
-| **VIP Heavy** | 14 | **-$38** | [-$95, $19] | **축소** |
-| **Bulk Shoppers** | 22 | **-$40** | [-$88, $8] | **축소** |
+| **VIP Heavy** | **59** | **-$38** | [-$95, $19] | **REDUCE / TypeA 제외** |
+| **Bulk Shoppers** | **77** | **-$40** | [-$88, $8] | **REDUCE / TypeA 제외** |
 
 ![CATE by Segment](../results/figures/cate_by_segment_purchase_amount.png)
 *Figure 11: VIP Heavy와 Bulk Shoppers의 음의 효과를 보여주는 고객 세그먼트별 CATE 분포.*
@@ -459,9 +511,9 @@ DRPolicyTree는 Doubly Robust 손실 함수를 사용하나, Positivity Violatio
 | **Ceiling Effect** | 이미 지출 상한에 도달, 추가 Uplift 불가 | Pre-treatment 지출 vs CATE 상관 분석 | r = -0.31 (음의 상관 확인) |
 | **Cannibalization** | 할인 구매로 정가 구매 대체 | 할인 품목 vs 비할인 품목 구매 변화 | 추가 분석 필요 |
 | **Timing Shift** | 구매 시점 앞당김 (미래 매출의 현재화) | 캠페인 후 4-8주 매출 추적 | 데이터 범위 제한 |
-| **Selection Bias** | VIP가 "어차피 살" 고객, Attribution 오류 | Overlap 영역 VIP만 별도 분석 | N=14로 검정력 부족 |
+| **Selection Bias** | VIP가 "어차피 살" 고객, Attribution 오류 | Overlap 영역 VIP만 별도 분석 | 검정력 부족 |
 
-**주의:** VIP Heavy 세그먼트의 N=14로 통계적 검정력이 제한적이다. 95% CI [-$95, $19]가 0을 포함하므로, 세그먼트 수준 결론보다 **개인 수준 CATE 기반 의사결정**을 권장한다.
+**주의:** VIP Heavy 세그먼트의 95% CI [-$95, $19]가 0을 포함하므로, 세그먼트 수준 결론보다 **개인 수준 CATE 기반 의사결정**을 권장한다.
 
 **Bulk Shoppers 음의 CATE (-$40) 심층 분석:**
 
@@ -500,17 +552,17 @@ PS AUC 0.989는 타겟팅 결정이 고객 특성에 의해 대부분 사전 결
 **2. Heterogeneous Treatment Effects가 경제적으로 유의**
 - 최고 반응자 (Regular+H&B, Active Loyalists): 고객당 +$33-34
 - 최저 반응자 (VIP Heavy, Bulk Shoppers): 고객당 -$38-40
-- 이 $70+ CATE 범위는 최적 타겟팅과 Naive 타겟팅 간 ~$7,000 수익 차이로 연결
+- 이 $70+ CATE 범위는 최적 타겟팅과 전체 타겟팅 간 **+$7,085** 수익 차이로 연결
 
 **3. 현재 타겟팅이 역효과일 수 있음**
-VIP Heavy 고객 (현재 97% 타겟팅)이 음의 CATE를 보여, 현재 전략이 이 세그먼트에서 가치를 파괴할 수 있음을 시사한다.
+VIP Heavy 고객이 음의 CATE를 보여, 현재 전략이 이 세그먼트에서 가치를 파괴할 수 있음을 시사한다. 현행 관행(302명, 62.1% 타겟팅)은 -$3,402 손실(ROI -88%)로, 단순 "다수 타겟팅"이 손실을 부른다.
 
 **4. 최적 타겟팅이 ROI를 극적으로 개선**
-| 전략 | Profit | ROI |
-|------|--------|-----|
-| 전체 타겟팅 | -$4,657 | -75% |
-| 상위 31% 타겟팅 | +$2,426 | +125% |
-| **개선** | **+$7,083** | **+200pp** |
+| 전략 | N | Profit | ROI |
+|------|---|--------|-----|
+| 전체 타겟팅 | 486 (100%) | -$4,659 | -75% |
+| 상위 31% 타겟팅 | 152 (31.3%) | +$2,426 | +125% |
+| **개선** | — | **+$7,085** | **+200pp** |
 
 ### 4.2 한계점
 
@@ -518,10 +570,11 @@ VIP Heavy 고객 (현재 97% 타겟팅)이 음의 CATE를 보여, 현재 전략�
 - CATE 추정의 83%가 관측 데이터를 넘어선 외삽에 의존
 - Overlap 영역의 결과가 전체 샘플보다 더 신뢰할 수 있음
 
-**2. 모델 불안정성**
-- Purchase Amount Outcome에 대해 Refutation Tests 실패
-- Placebo Ratio 0.75는 모델이 Spurious Correlation을 포착함을 나타냄
-- Subset Stability Correlation 0.56이 0.7 임계값 미달
+**2. 모델 불안정성 (Refutation 실패)**
+- Purchase Amount Outcome에 대해 Refutation Tests **실패**
+- Placebo Ratio 0.747은 모델이 Spurious Correlation을 포착함을 나타냄 (임계값 0.5 초과)
+- Subset Stability Correlation 0.561이 0.7 임계값 미달
+- 이는 Positivity Violation 하에서 예상되는 결과로, 결과를 **가설 생성적**으로 해석해야 하는 근거
 
 **3. 단일 캠페인 유형**
 - 분석이 TypeA 캠페인만 다룸
@@ -536,7 +589,7 @@ VIP Heavy 고객 (현재 97% 타겟팅)이 음의 CATE를 보여, 현재 전략�
 **Phase 1: 즉각 조치 (1-2주)**
 1. VIP Heavy 및 Bulk Shopper 세그먼트에 대한 TypeA 타겟팅 **중단** (음의 CATE)
 2. Regular+H&B 및 Active Loyalists에 대한 타겟팅 **지속** (양의 CATE)
-3. **파일럿 시작**: "Confident Positive" 27명 고객 타겟팅 (5.6%, 391% ROI)
+3. **파일럿 시작**: Conservative 정책(Lower CI > BE)으로 초안전 타겟팅 (0.6%, 3명, ROI 493%) 또는 Top 20%(97명, ROI 183%)로 단계적 시작
 
 **Phase 2: 검증 (2-4주)**
 
@@ -544,22 +597,21 @@ VIP Heavy 고객 (현재 97% 타겟팅)이 음의 CATE를 보여, 현재 전략�
 
 | 파라미터 | 값 | 근거 |
 |----------|-----|------|
-| **샘플 크기** | n=5,748 | 80% Power, α=0.05, MDE=$30 |
-| **MDE** | $30 | Trimmed ATE 추정치 $21의 ~1.4배 (보수적 설정) |
+| **샘플 크기** | n=5,748 (arm당 2,874) | 80% Power, α=0.05, detectable effect ~$34 |
+| **MDE (Detectable Effect)** | ~$34 | effect_size 34.22 (ab_test_design 기준) |
 | **기간** | 8주 | 캠페인 주 (4주) + Outcome 측정 (4주) |
 | **할당 비율** | 50:50 | 최대 검정력 확보 |
 | **층화 변수** | 세그먼트 (7개), PS 영역 (Overlap/Extreme) | 균형 확보 |
 
 **Power Analysis:**
 ```
-MDE = $30
+detectable effect ≈ $34 (effect_size 34.22)
 σ = $180 (관측된 Outcome 표준편차)
 α = 0.05 (양측)
 Power = 0.80
 
 n = 2 × (Z_α/2 + Z_β)² × σ² / MDE²
-n = 2 × (1.96 + 0.84)² × 180² / 30²
-n ≈ 5,748
+n_total ≈ 5,748   (arm당 2,874)
 ```
 
 **Expected Outcomes:**
@@ -597,7 +649,7 @@ n ≈ 5,748
 본 연구는 리테일 캠페인 최적화에 Heterogeneous Treatment Effect 추정의 적용을 보여준다. Causal Identification을 제한하는 심각한 Positivity Violation에도 불구하고, 경제적으로 유의한 Treatment Effect 이질성을 발견하였다:
 
 **주요 성과:**
-- 최적 타겟팅 vs. Naive 접근 간 **$7,000+ 수익 개선**
+- 최적 타겟팅 vs. 전체 타겟팅 간 **+$7,085 수익 개선** (-$4,659 → +$2,426)
 - VIP Heavy (-$38) 및 Bulk Shoppers (-$40)에서 **음의 CATE** 식별
 - **최적 Policy**: 고객의 31.3% 타겟팅으로 125% ROI
 
@@ -605,18 +657,21 @@ n ≈ 5,748
 - 다양한 완화 전략을 포함한 포괄적인 Positivity 진단
 - 행동 세분화 (Track 1)와 Causal Targeting (Track 2) 통합
 - 불확실성을 고려한 Risk-adjusted Policy Framework
+- raw AUUC가 아닌 **안정성 + 분포 plausibility**에 기반한 정직한 모델 선택
 
 **인정된 한계점:**
 - PS AUC 0.989는 근본적인 Identification 도전을 나타냄
-- Refutation Tests가 A/B 검증이 필요한 모델 불안정성을 시사
-- 결과는 확정적이기보다 가설 생성적으로 다루어야 함
+- Refutation Tests가 A/B 검증이 필요한 모델 불안정성을 시사 (Placebo 0.747 / Subset 0.561 → 실패)
+- 결과는 확정적이기보다 **가설 생성적**으로 다루어야 함
 
 **다음 단계:**
-권장 A/B Test (n=5,748)가 전면 배포 전 이러한 발견을 검증할 것이다. 단계적 롤아웃 접근법은 추정 오류에 대한 보호와 잠재적 수익 이득의 균형을 맞춘다.
+권장 A/B Test (n=5,748, MDE ~$34)가 전면 배포 전 이러한 발견을 검증할 것이다. 단계적 롤아웃 접근법은 추정 오류에 대한 보호와 잠재적 수익 이득의 균형을 맞춘다.
 
 ---
 
 ## 부록: 기술적 세부사항
+
+> 이 부록은 가장 밀도 높은 기술 디테일(파라미터·방정식·PS 영역별 분해·민감도 그리드·세그먼트 전략)을 담는다. 본문(30초/5분)을 읽은 뒤, 깊이 들어가려는 독자(30분)를 위한 레이어다.
 
 ### A.1 소프트웨어 환경
 - Python 3.9+
@@ -636,6 +691,11 @@ n ≈ 5,748
 - HTE 결과: `results/hte_estimation_results.joblib`
 - 검증 결과: `results/hte_validation_summary.joblib`
 - Policy 결과: `results/policy_learning_results.joblib`
+- 정책 비교: `results/tables/policy_comparison.csv`
+- 모델 비교: `results/tables/auuc_comparison_purchase_amount.csv`, `cate_summary_purchase_amount.csv`
+- ATE 결과: `results/tables/ate_results_purchase_amount.csv`
+- A/B 설계: `results/tables/ab_test_design.csv`
+- Breakeven 민감도: `results/tables/breakeven_scenarios.csv`
 
 ### A.4 주요 파라미터
 | 파라미터 | 값 | 근거 |
@@ -683,14 +743,19 @@ CATE 추정이 어디서 신뢰할 수 있는지 이해하는 것은 타겟팅 �
 
 ![Sensitivity Heatmap](../results/figures/sensitivity_heatmap.png)
 
-| 시나리오 | Cost 변화 | Margin 변화 | Breakeven | Profit 영향 |
-|----------|-----------|-------------|-----------|-------------|
-| Base | $12.73 | 30% | $42.43 | Baseline |
-| Low Cost | -20% | — | $33.94 | +18% 더 많은 고객 수익성 |
-| High Margin | — | +10pp | $31.82 | +25% 더 많은 고객 수익성 |
-| Pessimistic | +20% | -5pp | $61.17 | -30% 더 적은 고객 수익성 |
+**Breakeven 시나리오 그리드 (breakeven_scenarios 기준):**
 
-**강건성:** ±20% Cost/Margin 변동에서도 Policy가 수익성 유지.
+| 시나리오 | Cost | Margin | Breakeven | Target % | Profit |
+|----------|------|--------|-----------|----------|--------|
+| **Base** | $12.73 | 30% | $42.43 | 31.3% | +$2,426 |
+| Lower Margin | $12.73 | 25% | $50.92 | 26.1% | +$1,726 |
+| Higher Margin | $12.73 | 35% | $36.37 | 36.0% | +$3,173 |
+| Higher Cost | $15.00 | 30% | $50.00 | 26.5% | +$2,107 |
+| Lower Cost | $10.00 | 30% | $33.33 | 39.7% | +$2,888 |
+| **Worst (15/25%)** | $15.00 | 25% | 60.92 | — | +$1,461 |
+| **Best (10/35%)** | $10.00 | 35% | 28.57 | — | +$3,702 |
+
+**강건성:** Cost/Margin을 보수적·낙관적 양극단으로 흔들어도 최적 정책은 **양의 수익(+$1,461 ~ +$3,702)** 을 유지한다. 정책의 부호가 가정에 의해 뒤집히지 않는다는 점이 핵심.
 
 ---
 
@@ -698,23 +763,29 @@ CATE 추정이 어디서 신뢰할 수 있는지 이해하는 것은 타겟팅 �
 
 본 섹션은 CATE 분석과 Track 1 프로파일링을 기반으로 각 고객 세그먼트에 대한 포괄적인 타겟팅 권고를 제공한다.
 
+> **참고:** 아래 "현재 타겟팅 %" / "권장 %" 컬럼은 **어떤 source CSV에도 존재하지 않는 illustrative(예시) 수치**이며, 정확한 검증값이 아니다. 검증된 사실은 세그먼트별 **평균 CATE / N(486 코호트) / 방향성 액션(expand·hold·reduce)** 뿐이다. 아래 백분율은 방향을 직관적으로 보여주기 위한 예시로만 해석할 것.
+
 ---
 
 #### A.6.1 세그먼트 성과 매트릭스
 
-| 세그먼트 | 평균 CATE | 현재 타겟팅 | 권장 | Gap 분석 |
+*(현재/권장 타겟팅 %는 illustrative — 방향성만 참고)*
+
+| 세그먼트 | 평균 CATE | 현재 타겟팅 (예시) | 권장 (예시) | 방향 |
 |----------|-----------|-------------|------|----------|
-| **Regular+H&B** | +$34 | ~76% | 85%+ | 9pp 과소 타겟팅 |
-| **Active Loyalists** | +$33 | ~90% | 95%+ | 현재 유지 |
-| **Light Grocery** | +$30 | ~15% | 45% | **30pp 과소 타겟팅** |
-| **Fresh Lovers** | +$27 | ~27% | 55% | 28pp 과소 타겟팅 |
-| **Lapsed H&B** | +$19 | ~20% | 35% | 15pp 과소 타겟팅 |
-| **VIP Heavy** | **-$38** | ~97% | **50%** | **47pp 과다 타겟팅** |
-| **Bulk Shoppers** | **-$40** | ~52% | **20%** | **32pp 과다 타겟팅** |
+| **Regular+H&B** | +$34 | ~76% | 85%+ | 소폭 확대 |
+| **Active Loyalists** | +$33 | ~90% | 95%+ | 유지 |
+| **Light Grocery** | +$30 | ~15% | 45% | **확대** |
+| **Fresh Lovers** | +$27 | ~27% | 55% | 확대 |
+| **Lapsed H&B** | +$19 | ~20% | 35% | 소폭 확대 |
+| **VIP Heavy** | **-$38** | ~97% | **50%** | **축소** |
+| **Bulk Shoppers** | **-$40** | ~52% | **20%** | **축소** |
 
 ---
 
 #### A.6.2 세그먼트별 상세 액션 플랜
+
+*(아래 타겟팅 %는 illustrative — 검증값은 평균 CATE와 방향성 액션)*
 
 **세그먼트: VIP Heavy (CATE: -$38)**
 
@@ -723,7 +794,7 @@ CATE 추정이 어디서 신뢰할 수 있는지 이해하는 것은 타겟팅 �
 | 캠페인 반응 | 음수 | 이미 High Purchaser, Ceiling Effect | TypeA 빈도 감소 |
 | 대체 채널 | TypeA 과다 노출 | 피로감 유발 가능 | TypeB/C 테스트 |
 | 가치 보호 | $9,716 평균 지출 | 이탈 위험 | 프리미엄 비할인 혜택 |
-| 타겟팅 규칙 | 97% 타겟팅 | 과다 타겟팅 | 신상품 시험용으로만 타겟팅 |
+| 타겟팅 규칙 | 과다 노출 (예시 ~97%) | 과다 타겟팅 | 신상품 시험용으로만 타겟팅 |
 
 **세그먼트: Bulk Shoppers (CATE: -$40)**
 
@@ -732,15 +803,15 @@ CATE 추정이 어디서 신뢰할 수 있는지 이해하는 것은 타겟팅 �
 | 캠페인 반응 | 음수 | 가격 민감, 쿠폰 미스매치 | 쿠폰 캠페인 감소 |
 | 쇼핑 패턴 | 비정기 대량 | TypeA가 자연 리듬 방해 | 구독/정기화에 집중 |
 | 대안 접근 | 방문당 대량 장바구니 | Bulk 특화 오퍼 필요 | 창고형 프로모션 |
-| 타겟팅 규칙 | 52% 타겟팅 | 중간 과다 타겟팅 | 카테고리 확장용으로만 타겟팅 |
+| 타겟팅 규칙 | 중간 노출 (예시 ~52%) | 중간 과다 타겟팅 | 카테고리 확장용으로만 타겟팅 |
 
 **세그먼트: Light Grocery (CATE: +$30)**
 
 | 차원 | 현재 상태 | 문제 | 권고 |
 |------|----------|------|------|
-| 캠페인 반응 | 양수 | 현재 과소 타겟팅 | **타겟팅률 3배 증가** |
+| 캠페인 반응 | 양수 | 현재 과소 타겟팅 | **타겟팅률 대폭 증가** |
 | 잠재력 | 낮은 관여 | 높은 Uplift 기회 | 활성화 캠페인 |
-| 전략 | 15% 타겟팅 | Incremental Value 누락 | 점진적 보상 프로그램 |
+| 전략 | 최소 노출 (예시 ~15%) | Incremental Value 누락 | 점진적 보상 프로그램 |
 | 타겟팅 규칙 | 최소 노출 | 주요 갭 | CATE > Breakeven인 모든 고객 타겟팅 |
 
 ---
@@ -751,10 +822,10 @@ CATE 추정이 어디서 신뢰할 수 있는지 이해하는 것은 타겟팅 �
 
 | Risk Tolerance | λ 파라미터 | 타겟팅 세그먼트 | 예상 Profit | ROI |
 |----------------|------------|----------------|-------------|-----|
-| **공격적** (λ=0) | Full CATE | Regular+H&B, Active Loyalists, Light Grocery, Fresh Lovers, Lapsed | $2,426 | 125% |
-| **중간** (λ=0.3) | 70% Point + 30% Lower | Regular+H&B, Active Loyalists, Light Grocery, Fresh Lovers | ~$1,800 | ~150% |
+| **공격적** (λ=0) | Full CATE | Regular+H&B, Active Loyalists, Light Grocery, Fresh Lovers, Lapsed | +$2,426 | 125% |
+| **중간** (λ=0.3) | 70% Point + 30% Lower | Regular+H&B, Active Loyalists, Light Grocery, Fresh Lovers | +$1,603 | 233% |
 | **보수적** (λ=0.7) | 30% Point + 70% Lower | Regular+H&B, Active Loyalists | ~$1,200 | ~200% |
-| **초안전** (λ=1.0) | Lower Bound만 | Confident Positive만 (27명) | $1,343 | 391% |
+| **초안전** (λ=1.0 / Lower CI > BE) | Lower Bound만 | Conservative (3명) | +$188 | 493% |
 
 **상황별 권고:**
 

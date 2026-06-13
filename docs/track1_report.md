@@ -1,14 +1,52 @@
 # Latent Factor Modeling을 활용한 고객 세그멘테이션: 리테일 분석 사례 연구
 
+**🇰🇷 한국어** | [🇺🇸 English](track1_report.en.md)  ·  [← README로 돌아가기](../README.md)
+
+---
+
+## 한눈에 보기 (TL;DR)
+
+> **3줄 요약**
+> 1. Dunnhumby 2,500가구·~260만 거래·102주 데이터에 **NMF (k=5, 설명분산 92.44%) + K-Means (k=7)** 를 적용해 **7개 고객 세그먼트**를 도출했다.
+> 2. 세그먼트는 **Bootstrap ARI 0.77 ± 0.11 (n=100)** 로 높은 안정성을 보이며, **고가치 상위 계층(High: 0·1·6, 전체 45.0%)이 매출의 약 73.9%** 를 차지하는 명확한 Pareto 구조를 드러낸다.
+> 3. 이 기술적(Descriptive) 세그먼트는 그 자체로 마케팅 전략의 토대이자, **Track 2 인과 타겟팅의 Moderator** 로 연결된다 (인과적 반응성은 Track 2에서 검증).
+
+### 핵심 숫자 (Key Numbers)
+
+| 항목 | 값 | 비고 |
+|------|-----|------|
+| 세그먼트 수 | **7개** | K-Means, DBI 최소 + 해석가능성 기준 선택 |
+| NMF Latent Factor | **k=5** | 설명분산 **92.44%** |
+| 세그먼트 안정성 | **ARI 0.77 ± 0.11** | Bootstrap n=100, 80% 샘플 |
+| 최대 세그먼트 | Light Grocery **21.0%** (524가구) | 고객 수 기준 |
+| 최고가치 세그먼트 | VIP Heavy **$9,716/가구** (12.0%) | 평균 매출 기준 |
+| Pareto 구조 | High 계층 45.0% 고객 → **매출 73.9%** | 가치 집중 확인 |
+
+### Hero Figures
+
+![Segment Profiles Heatmap](../results/figures/segment_profiles_heatmap.png)
+*세그먼트별 표준화 Feature 프로필 (Z-scores) — 7개 세그먼트의 행동 차별화를 한눈에 보여준다.*
+
+![Factor Loadings Heatmap](../results/figures/factor_loadings_heatmap.png)
+*NMF 5개 Latent Factor의 Feature Loading — Value 차원(F2·F3)과 Need 차원(F1·F4·F5)의 분리.*
+
+### 목차 (Table of Contents)
+
+- **[30초]** [한눈에 보기 (TL;DR)](#한눈에-보기-tldr)
+- **[5분]** [요약](#요약) · [1. 서론](#1-서론) · [2. 방법론](#2-방법론) · [3. 결과](#3-결과) · [4. 논의](#4-논의) · [5. 결론](#5-결론)
+- **[30분]** [부록: 기술적 세부사항](#부록-기술적-세부사항) (파라미터·Clustering 메트릭 전표·Bubble Chart별 마케팅 액션 매핑) · [참고문헌](#참고문헌)
+
+---
+
 ## 요약
 
 본 분석은 Dunnhumby "The Complete Journey" 데이터셋의 리테일 거래 데이터를 활용하여 행동 기반 고객 세그멘테이션 프레임워크를 제시한다. Non-negative Matrix Factorization (NMF)과 K-Means Clustering을 결합하여 102주 관측 기간 동안 2,500 가구로부터 7개의 고객 세그먼트를 도출하였다.
 
 **주요 결과:**
 - 5개의 해석 가능한 Latent Factor가 고객 행동 분산의 92.44%를 설명
-- 7개 고객 세그먼트의 높은 안정성 (Bootstrap ARI = 0.77 ± 0.11)
+- 7개 고객 세그먼트의 높은 안정성 (Bootstrap ARI = 0.77 ± 0.11, n=100)
 - VIP 세그먼트 (전체의 12%)가 고객당 평균 $9,716 매출 창출
-- 고가치 고객군 (44.8%)이 전체 매출의 약 70% 기여
+- 고가치 고객군 (45.0%)이 전체 매출의 약 73.9% 기여
 - 각 세그먼트별 명확한 마케팅 전략 도출
 
 본 세그멘테이션은 개인화 마케팅 전략의 기반을 제공하며, 후속 Causal Targeting 분석 (Track 2)의 입력으로 활용된다.
@@ -28,7 +66,7 @@
 | 항목 | 값 |
 |------|-----|
 | 가구 수 | 2,500 |
-| 거래 건수 | 260만 건 |
+| 거래 건수 | 약 260만 건 (2,595,732) |
 | 분석 기간 | 102주 (2년) |
 | 캠페인 수 | 30개 마케팅 캠페인 |
 | 상품 수 | 92,000+ SKUs |
@@ -129,13 +167,24 @@ NMF Factor Score에 K-Means Clustering을 적용하여 고객 세그먼트를 �
 - K-Means vs. Gaussian Mixture Model (GMM) 비교
 - K-Means가 GMM을 크게 상회 (Silhouette: 0.219 vs. 0.047)
 
-**최적 k 선택:**
-- Davies-Bouldin Index: k = 7에서 최소 (DBI = 1.241)
-- Silhouette Score: k = 6-8 범위에서 안정적
-- **선택: k = 7** (클러스터 품질과 비즈니스 해석가능성의 균형)
+**최적 k 선택 (정직한 트레이드오프):**
+
+후보 k에 대한 내부 검증 메트릭은 아래와 같다 (전체 표는 부록 A.5):
+
+| k | Silhouette | Calinski-Harabasz | Davies-Bouldin |
+|---|-----------|-------------------|----------------|
+| 3 | **0.271** | 984.9 | 1.256 |
+| 5 | 0.225 | 794.2 | 1.321 |
+| 6 | 0.207 | 756.3 | 1.342 |
+| **7** | 0.219 | 732.0 | **1.241** ← 선택 |
+| 8 | 0.209 | 700.2 | 1.244 |
+
+- **Davies-Bouldin Index (DBI): k = 7에서 최소 (1.241)** — 후보 중 가장 양호한 클러스터 분리.
+- **Silhouette Score는 사실 낮은 k에서 가장 높다 (k=3에서 0.271로 최대).** k=7의 Silhouette(0.219)은 최댓값이 아니며, 이를 "최적"이라 주장하지 않는다.
+- **선택: k = 7** — (1) DBI 최소화, (2) 비즈니스 해석가능성/실행가능성(7개 세그먼트가 마케팅 액션으로 자연스럽게 매핑), (3) 높은 Bootstrap 안정성(ARI 0.77)을 종합한 결정이다. 즉 단일 메트릭 최적이 아니라, 정량 지표(DBI)와 정성 기준(실행가능성)·강건성(ARI)의 균형 위에서 선택했다.
 
 ![Clustering Metrics](../results/figures/clustering_metrics.png)
-*Figure 2: k 값에 따른 Clustering 평가 메트릭.*
+*Figure 2: k 값에 따른 Clustering 평가 메트릭. Silhouette은 낮은 k에서 높고, DBI는 k=7에서 최소.*
 
 ### 2.4 안정성 검증
 
@@ -154,11 +203,11 @@ NMF를 통해 고객 행동의 서로 다른 측면을 나타내는 5개의 해�
 
 | Factor | 명칭 | 상위 Feature (Loading) | 해석 |
 |--------|------|----------------------|------|
-| **F1** | Grocery Deal Seeker | share_grocery (6.7), discount_pct (5.1), PL_ratio (3.4) | 할인을 추구하는 예산 중시 식료품 구매자 |
-| **F2** | Loyal Regular | regularity (4.6), n_dept (2.6), frequency (1.0) | One-stop 쇼핑 고관여 고객 |
-| **F3** | Big Basket | monetary_std (2.5), avg_basket (2.4) | 비정기적 대량 구매자 |
-| **F4** | Fresh Focused | share_fresh (2.3), n_dept (1.2) | 신선식품 카테고리 전문가 |
-| **F5** | Health & Beauty | share_h&b (2.0) | 드럭스토어 유형 구매자 |
+| **F1** | Grocery Deal Seeker | share_grocery (6.72), discount_usage_pct (5.13), private_label_ratio (3.41) | 할인을 추구하는 예산 중시 식료품 구매자 |
+| **F2** | Loyal Regular | purchase_regularity (4.63), n_departments (2.61), n_products (1.53), frequency (1.04) | One-stop 쇼핑 고관여 고객 |
+| **F3** | Big Basket | monetary_std (2.45), monetary_avg_basket (2.35), share_grocery (2.08) | 비정기적 대량 구매자 |
+| **F4** | Fresh Focused | share_fresh (2.26), n_departments (1.21) | 신선식품 카테고리 전문가 |
+| **F5** | Health & Beauty | share_health_beauty (2.03), recency (0.41) | 드럭스토어 유형 구매자 |
 
 ![Factor Loadings Heatmap](../results/figures/factor_loadings_heatmap.png)
 *Figure 3: NMF Factor Loadings Heatmap - 각 Latent Factor별 Feature 가중치.*
@@ -170,18 +219,18 @@ Factor들은 자연스럽게 **Value 차원** (빈도, 금액을 포착하는 F2
 | 메트릭 | 값 | 해석 |
 |--------|-----|------|
 | Explained Variance | 92.44% | 높은 Factor 커버리지 |
-| Silhouette Score | 0.219 | 행동 데이터로서 적절 (벤치마크 0.15-0.30) |
+| Silhouette Score (k=7) | 0.219 | 행동 데이터로서 적절 (벤치마크 0.15-0.30); 단, 최댓값은 k=3(0.271) |
 | Calinski-Harabasz Index | 732.0 | 높은 클러스터 간 분산 |
-| Davies-Bouldin Index | 1.241 | 양호한 클러스터 분리 |
-| Bootstrap ARI | 0.767 ± 0.113 | 높은 안정성 (95% CI: 0.55-0.99) |
+| Davies-Bouldin Index | 1.241 | 후보 k 중 최소 (최적 분리) |
+| Bootstrap ARI | 0.77 ± 0.11 | 높은 안정성 (95% CI: 0.55-0.99) |
 
 **Silhouette Score 해석:**
 
-Silhouette Score 0.219는 보통 수준이지만, 고객 특성이 이산적 그룹보다 연속적으로 존재하는 행동 Clustering에서는 일반적인 수치이다.
+Silhouette Score 0.219는 보통 수준이며, 본 데이터에서는 더 낮은 k(k=3)에서 더 높게 나타난다. 그러나 이는 고객 특성이 이산적 그룹보다 연속적으로 존재하는 행동 Clustering에서 일반적인 패턴이다. k=7은 Silhouette 최적이 아니라 **DBI 최소화 + 해석가능성 + 안정성** 기준의 선택임을 명확히 한다 (§2.3).
 
 | 비교 대상 | Silhouette | 출처 |
 |-----------|------------|------|
-| 본 연구 | 0.219 | - |
+| 본 연구 (k=7) | 0.219 | - |
 | 리테일 세분화 일반 | 0.15-0.30 | Wedel & Kamakura (2000) |
 | E-commerce 클러스터링 | 0.15-0.30 | 산업 벤치마크 |
 | 인구통계 기반 세분화 | 0.35-0.50 | 이산적 속성으로 높은 분리 |
@@ -191,25 +240,27 @@ Silhouette Score 0.219는 보통 수준이지만, 고객 특성이 이산적 그
 - RFM 및 카테고리 선호가 그라데이션 형태
 - 세그먼트 간 전이 고객 존재 (예: Light Grocery → Active Loyalists 전환 중)
 
-**수용 가능성 판단:** 0.219는 행동 데이터 맥락에서 벤치마크 범위 내이며, 높은 Bootstrap ARI (0.77)가 세그먼트의 실질적 안정성을 보완한다.
+**수용 가능성 판단:** 0.219는 행동 데이터 맥락에서 벤치마크 범위 내이며, **DBI가 k=7에서 최소**라는 점과 **높은 Bootstrap ARI (0.77)** 가 세그먼트의 실질적 안정성을 보완한다.
 
 ### 3.3 안정성 검증
 
-Bootstrap Resampling (100회 반복, 80% 샘플)은 **0.767 ± 0.113**의 Adjusted Rand Index를 산출하여 높은 세그먼트 안정성을 나타냈다. ARI 0.70 이상은 일반적으로 강한 일치로 간주되며, 7개 세그먼트 솔루션이 샘플링 변동에 강건함을 확인한다.
+Bootstrap Resampling (100회 반복, 80% 샘플)은 **0.77 ± 0.11**의 Adjusted Rand Index를 산출하여 높은 세그먼트 안정성을 나타냈다. ARI 0.70 이상은 일반적으로 강한 일치로 간주되며, 7개 세그먼트 솔루션이 샘플링 변동에 강건함을 확인한다.
 
 ### 3.4 7개 고객 세그먼트
 
-Clustering은 7개의 고유한 고객 세그먼트를 식별하였다:
+Clustering은 7개의 고유한 고객 세그먼트를 식별하였다 (전체 2,500가구 기준):
 
-| Seg | 명칭 | 규모 | 평균 매출 | Frequency | Recency | 주요 Factor |
-|-----|------|------|----------|-----------|---------|------------|
-| **0** | Active Loyalists | 509 (20.4%) | $3,878 | 171회 | 6일 | F2 (Loyal) |
-| **1** | VIP Heavy | 299 (12.0%) | $9,716 | 256회 | 4일 | F2 (Loyal) |
-| **2** | Lapsed H&B | 193 (7.7%) | $872 | 37회 | 75일 | F5 (H&B) |
-| **3** | Fresh Lovers | 339 (13.6%) | $1,233 | 76회 | 12일 | F4 (Fresh) |
-| **4** | Light Grocery | 524 (21.0%) | $1,100 | 58회 | 17일 | F4 (Fresh) |
-| **5** | Bulk Shoppers | 318 (12.7%) | $3,206 | 56회 | 39일 | F3 (Basket) |
-| **6** | Regular + H&B | 318 (12.7%) | $3,393 | 141회 | 9일 | F2 (Loyal) |
+| Seg | 명칭 | 규모 | 평균 매출 | Frequency | Recency | Regularity | 주요 Factor |
+|-----|------|------|----------|-----------|---------|-----------|------------|
+| **0** | Active Loyalists | 509 (20.4%) | $3,878 | 171회 | 6일 | 0.78 | F2 (Loyal) |
+| **1** | VIP Heavy | 299 (12.0%) | $9,716 | 256회 | 4일 | 0.88 | F2 (Loyal) |
+| **2** | Lapsed H&B | 193 (7.7%) | $872 | 37회 | 75일 | 0.25 | F5 (H&B) |
+| **3** | Fresh Lovers | 339 (13.6%) | $1,233 | 48회 | 36일 | 0.34 | F4 (Fresh) |
+| **4** | Light Grocery | 524 (21.0%) | $942 | 43회 | 42일 | 0.30 | F1 (Grocery-Deal) |
+| **5** | Bulk Shoppers | 318 (12.7%) | $3,206 | 56회 | 24일 | 0.41 | F3 (Basket) |
+| **6** | Regular + H&B | 318 (12.7%) | $3,393 | 152회 | 12일 | 0.70 | F2 (Loyal) |
+
+> **참고:** Seg4 (Light Grocery)의 주요 Factor를 F1 (Grocery-Deal)로 표기한다 — 이 세그먼트는 grocery share 0.56 + discount 0.51이 F1에 강하게 적재되어 식료품·할인 추구 성향이 지배적이다.
 
 ![Segment Sizes](../results/figures/segment_sizes.png)
 *Figure 4: 고객 세그먼트 규모 분포.*
@@ -225,7 +276,7 @@ Clustering은 7개의 고유한 고객 세그먼트를 식별하였다:
 **세그먼트 특성:**
 
 **Segment 0: Active Loyalists (20.4%)**
-- 높은 구매 규칙성과 다양한 카테고리 쇼핑
+- 높은 구매 규칙성 (0.78)과 다양한 카테고리 쇼핑
 - 강한 Private Label 선호 (PL ratio 0.34로 최고)
 - 예산 중시이면서 충성도 높은 구매자
 
@@ -241,39 +292,40 @@ Clustering은 7개의 고유한 고객 세그먼트를 식별하였다:
 
 **Segment 3: Fresh Lovers (13.6%)**
 - 중간 관여도의 신선식품 카테고리 전문가
-- 활성 고객 (12일 Recency)으로 집중된 장바구니
+- 비교적 활성 고객 (36일 Recency)으로 집중된 장바구니
 
 **Segment 4: Light Grocery (21.0%)**
-- 고객 수 기준 최대 세그먼트, 고객당 최저 가치
-- 약간의 신선식품 선호와 함께 가벼운 관여
+- 고객 수 기준 최대 세그먼트, 고객당 최저 가치 ($942)
+- 식료품·할인 중심의 가벼운 관여 (F1 Grocery-Deal 지배)
 - 습관 형성 잠재력이 있는 활성화 기회
 
 **Segment 5: Bulk Shoppers (12.7%)**
-- 최고 평균 장바구니 크기 (방문당 $59)
-- 낮은 빈도이나 방문당 높은 지출
+- 최고 평균 장바구니 크기 (방문당 약 $57)
+- 낮은 빈도 (56회)이나 방문당 높은 지출
 - 창고형/코스트코 스타일 쇼핑 패턴
 
 **Segment 6: Regular + H&B (12.7%)**
 - VIP 전환 잠재력이 있는 2등급 가치 세그먼트
-- H&B 집중과 함께 정기적 구매자 (141회)
+- H&B 집중과 함께 정기적 구매자 (152회)
 
 ### 3.6 가치 계층 분포
 
-세그먼트는 자연스럽게 가치 계층으로 분리된다:
+세그먼트는 자연스럽게 가치 계층으로 분리된다 (전체 2,500가구 기준):
 
 | 계층 | 세그먼트 | N | 고객 비율 | 평균 매출 | 총 매출 | 매출 비중 |
 |------|----------|---|----------|----------|---------|----------|
-| **High** | 0, 1, 6 | 1,126 | 45.0% | $5,662 | $6,375K | **68.4%** |
-| **Medium** | 3, 5 | 657 | 26.3% | $2,220 | $1,459K | 15.7% |
-| **Low/At-Risk** | 2, 4 | 717 | 28.7% | $986 | $1,482K | 15.9% |
-| **합계** | - | 2,500 | 100% | $3,727 | $9,316K | 100% |
+| **High** | 0, 1, 6 | 1,126 | 45.0% | $5,291 | $5,958K | **73.9%** |
+| **Medium** | 3, 5 | 657 | 26.3% | $2,188 | $1,437K | 17.8% |
+| **Low/At-Risk** | 2, 4 | 717 | 28.7% | $923 | $662K | 8.2% |
+| **합계** | - | 2,500 | 100% | $3,223 | $8,057K | 100% |
 
 **계산 근거:**
 - 총 매출 = Σ(세그먼트 N × 평균 매출)
 - 매출 비중 = 계층 총 매출 / 전체 총 매출
 - High Value 세그먼트: Active Loyalists ($3,878), VIP Heavy ($9,716), Regular+H&B ($3,393)
+- (위 합계는 교정된 세그먼트 평균 매출에 따라 재산출되었으며, Seg4 $942 등 LEDGER 정본값을 반영한다.)
 
-**Pareto 법칙 검증:** 상위 45% 고객 (High Value)이 68.4% 매출을 기여하여, 전통적 80/20 법칙보다는 완화된 형태이나 명확한 가치 집중 현상을 확인.
+**Pareto 법칙 검증:** 상위 45% 고객 (High Value)이 73.9% 매출을 기여하여, 전통적 80/20 법칙에 근접한 명확한 가치 집중 현상을 확인한다.
 
 ### 3.7 다차원 세그먼트 포지셔닝
 
@@ -293,7 +345,7 @@ Clustering은 7개의 고유한 고객 세그먼트를 식별하였다:
 ### 4.1 주요 인사이트
 
 **1. 명확한 가치 계층**
-세분화는 명확한 Pareto 분포를 보여준다: 고가치 세그먼트의 44.8%가 추정 매출의 약 70%를 기여한다. VIP Heavy (12%)만으로도 가장 중요한 유지 대상이다.
+세분화는 명확한 Pareto 분포를 보여준다: 고가치 세그먼트의 45.0%가 추정 매출의 약 73.9%를 기여한다. VIP Heavy (12%)만으로도 가장 중요한 유지 대상이다.
 
 **2. 행동적 차별화**
 Factor들은 **Value** (빈도, 금액)와 **Need** (카테고리 선호) 차원 모두에서 고객을 성공적으로 분리한다. 이 이중 구조는 가치 기반 우선순위 설정과 Need 기반 개인화를 모두 가능하게 한다.
@@ -301,7 +353,7 @@ Factor들은 **Value** (빈도, 금액)와 **Need** (카테고리 선호) 차원
 **3. 라이프사이클 단계**
 세그먼트는 고유한 라이프사이클 단계에 매핑된다:
 - Active/Growing: Segment 0, 1, 6 (낮은 Recency, 높은 관여)
-- Stable: Segment 3, 4 (중간 Recency)
+- Stable: Segment 3, 4, 5 (중간 Recency)
 - Declining/Churned: Segment 2 (높은 Recency, 낮은 관여)
 
 **4. 카테고리 전문가**
@@ -324,10 +376,12 @@ Fresh Lovers (13.6%)와 H&B 집중 세그먼트는 카테고리 전문화를 보
 - Medium Priority (30%): Bulk Shoppers (10%), Fresh Lovers (10%), Light Grocery (10%)
 - Low Priority (10%): Lapsed H&B (10%)
 
+> **주의 (기술적 vs 인과적):** 위 배분은 *기술적* 가치(매출 기여)에 근거한 우선순위이다. "어느 세그먼트가 프로모션에 실제로 더 잘 반응하는가"는 별개의 인과적 질문이며, Track 2에서 세그먼트별 CATE로 검증한다 — 그 결과는 매출 가치 순위와 다를 수 있다(예: 고가치 세그먼트가 반드시 높은 처치효과를 갖지 않을 수 있음).
+
 ### 4.3 한계점
 
 **1. 보통 수준의 Silhouette Score (0.219)**
-행동 데이터는 본질적으로 이산적 경계보다 연속성을 보인다. 이 점수는 고객 세분화에서 수용 가능하나 세그먼트 간 일부 중첩을 나타낸다.
+행동 데이터는 본질적으로 이산적 경계보다 연속성을 보인다. 본 데이터에서 Silhouette은 더 낮은 k(k=3)에서 더 높으므로, k=7은 Silhouette 최적이 아니라 DBI 최소화·해석가능성·안정성 기준의 선택이다. 이 점수는 고객 세분화에서 수용 가능하나 세그먼트 간 일부 중첩을 나타낸다.
 
 **2. 제한된 Demographics 커버리지 (32%)**
 2,500 가구 중 801 가구만 인구통계 정보를 보유하여, Demographics 기반 층화와 페르소나 개발이 제한된다.
@@ -356,12 +410,12 @@ Cross-sell 최적화 시나리오를 위해 별도의 Value (RFM)와 Need (Categ
 
 ## 5. 결론
 
-본 연구는 Latent Factor Modeling과 Clustering을 활용한 행동 기반 고객 세분화의 효과적인 접근법을 보여준다. NMF + K-Means 프레임워크는 높은 안정성 (ARI = 0.77)과 명확한 비즈니스 해석가능성을 가진 7개의 고유한 고객 세그먼트를 성공적으로 식별하였다.
+본 연구는 Latent Factor Modeling과 Clustering을 활용한 행동 기반 고객 세분화의 효과적인 접근법을 보여준다. NMF + K-Means 프레임워크는 높은 안정성 (ARI = 0.77 ± 0.11)과 명확한 비즈니스 해석가능성을 가진 7개의 고유한 고객 세그먼트를 성공적으로 식별하였다.
 
 주요 성과:
-- Value (Loyalty, Monetary)와 Need (Category Preference) 차원을 포착하는 **5개 Latent Factor**
+- Value (Loyalty, Monetary)와 Need (Category Preference) 차원을 포착하는 **5개 Latent Factor** (설명분산 92.44%)
 - VIP Heavy ($9,716 평균)부터 Lapsed H&B ($872 평균)까지 다양한 **7개 실행 가능한 세그먼트**
-- 집중적인 유지 노력이 필요한 44.8% 고가치 고객을 포함한 **명확한 우선순위 계층**
+- 집중적인 유지 노력이 필요한 45.0% 고가치 고객(매출 73.9% 기여)을 포함한 **명확한 우선순위 계층**
 - Retention (VIP)에서 Activation (Light Grocery), Win-back (Lapsed)까지의 **세그먼트별 전략**
 
 세분화는 개인화 마케팅의 견고한 기반을 제공하며, 후속 Causal Targeting 분석의 입력으로 활용되어 증거 기반 마케팅 최적화를 가능하게 한다.
@@ -493,6 +547,22 @@ Cross-sell 최적화 시나리오를 위해 별도의 Value (RFM)와 Need (Categ
 | **High Variety + Low Regularity** | Bulk Shoppers | 가끔의 종합 쇼핑 | 정기적 케이던스로 전환 |
 | **Low Variety + High Regularity** | Fresh Lovers | 카테고리 전문가 | 카테고리 심화, 인접 확장 |
 | **Low Variety + Low Regularity** | Lapsed, Light | 협소, 비정기 | 장바구니 확대 먼저, 그 다음 빈도 |
+
+---
+
+### A.5 Clustering 평가 메트릭 전표 (clustering_metrics.csv)
+
+후보 k에 대한 내부 검증 메트릭 전체. **DBI는 k=7에서 최소(1.241)**, Silhouette은 낮은 k(k=3=0.271)에서 최대임에 유의.
+
+| k | Silhouette | Calinski-Harabasz | Davies-Bouldin | 비고 |
+|---|-----------|-------------------|----------------|------|
+| 3 | 0.271 | 984.9 | 1.256 | Silhouette 최대 |
+| 5 | 0.225 | 794.2 | 1.321 | |
+| 6 | 0.207 | 756.3 | 1.342 | DBI 최악 |
+| **7** | 0.219 | 732.0 | **1.241** | **선택 (DBI 최소 + 해석가능성 + 안정성)** |
+| 8 | 0.209 | 700.2 | 1.244 | |
+
+**해석 노트:** 단일 메트릭만 보면 Silhouette은 낮은 k를, Calinski-Harabasz는 가장 낮은 k를 선호한다. 그러나 (1) DBI 최소가 k=7에서 달성되고, (2) 7개 세그먼트가 마케팅 액션과 1:1로 매핑되는 실행가능성을 가지며, (3) Bootstrap ARI 0.77 ± 0.11로 강건하므로 k=7을 채택했다. 메트릭 간 불일치를 숨기지 않고 정직하게 기록한다.
 
 ---
 
