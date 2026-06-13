@@ -361,7 +361,6 @@ kr_segmentation_causal_targeting_dunnhumby/
   - Positivity Diagnostics, CATE 추정, Policy 비교, A/B Test 설계
 - **[Positivity Assumption](docs/positivity_assumption.md)** — Positivity Violation 진단·완화 상세
 - **[Glossary](docs/GLOSSARY.md)** — 핵심 용어 정의 (CATE, AUUC, ATO, Manski Bounds 등)
-- **[Interview Q&A](docs/interview.md)** — Data Scientist / Marketer / 리크루터 3관점 평가
 
 ---
 

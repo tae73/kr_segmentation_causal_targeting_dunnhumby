@@ -363,7 +363,6 @@ For detailed methodology, results, and business interpretation, see:
   - positivity diagnostics, CATE estimation, policy comparison, A/B-test design
 - **[Positivity Assumption](docs/positivity_assumption.md)** — positivity-violation diagnosis and mitigation in detail
 - **[Glossary](docs/GLOSSARY.md)** — definitions of core terms (CATE, AUUC, ATO, Manski bounds, etc.)
-- **[Interview Q&A](docs/interview.md)** — evaluation from three angles: Data Scientist / Marketer / Recruiter
 
 ---
 
