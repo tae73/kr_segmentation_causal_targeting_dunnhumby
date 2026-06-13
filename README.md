@@ -38,7 +38,12 @@
 | Positivity 진단 | PS AUC **0.989**, Overlap **17%** | 심각한 위반 → 가설 생성적 해석 |
 | 1차 CATE 모델 | **CausalForestDML** | 저분산·타당성 기준 선택(자세히는 Track 2) |
 
-**ROI 곡선 — 31.3%에서 최적, 100% 타겟팅은 손실**
+**7개 고객 세그먼트 — 충성도 × 할인추구 포지셔닝 (Track 1)**
+
+![Segment Positioning](results/figures/bubble_a_loyal_vs_deal.png)
+*충성도(F2) × 할인추구(F1) 공간의 7개 행동 세그먼트. VIP Heavy는 고충성·저할인(프리미엄), Active Loyalists는 고충성·고할인(예산 중시).*
+
+**ROI 곡선 — 31.3%에서 최적, 100% 타겟팅은 손실 (Track 2)**
 
 ![ROI Curves](results/figures/roi_curves.png)
 *타겟팅 비율별 ROI. **31.3%에서 최적(125% ROI)**, 100% 타겟팅 시 **-75% ROI로 손실** 발생.*

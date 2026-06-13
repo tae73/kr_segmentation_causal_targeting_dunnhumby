@@ -40,7 +40,12 @@
 | Positivity diagnostic | PS AUC **0.989**, overlap **17%** | severe violation → hypothesis-generating reading |
 | Primary CATE model | **CausalForestDML** | chosen for low variance + plausibility (see Track 2) |
 
-**ROI curve — optimal at 31.3%, 100% targeting loses money**
+**Seven customer segments — loyalty × deal-seeking positioning (Track 1)**
+
+![Segment Positioning](results/figures/bubble_a_loyal_vs_deal.png)
+*Seven behavioral segments in loyalty (F2) × deal-seeking (F1) space. VIP Heavy = high-loyalty / low-deal (premium); Active Loyalists = high-loyalty / high-deal (budget-conscious).*
+
+**ROI curve — optimal at 31.3%, 100% targeting loses money (Track 2)**
 
 ![ROI Curves](results/figures/roi_curves.png)
 *ROI by targeting fraction. **Optimal at 31.3% (125% ROI)**; at 100% targeting the campaign turns into a **-75% ROI loss**.*
