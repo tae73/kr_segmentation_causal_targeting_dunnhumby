@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" role="img" aria-label="2-Track Framework: Track 1 Customer Understanding and Track 2 Causal Targeting">
+  <rect x="1.5" y="1.5" width="897" height="557" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <g font-family="'Helvetica Neue','Segoe UI','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif">
+    <text x="450" y="44" text-anchor="middle" font-size="23" font-weight="800" fill="#0F172A" letter-spacing="3">2-TRACK FRAMEWORK</text>
+    <text x="450" y="66" text-anchor="middle" font-size="12.5" fill="#64748B" letter-spacing="0.5">Customer Segmentation → Causal Targeting</text>
+
+    <!-- Track 1 card -->
+    <rect x="28" y="86" width="844" height="210" rx="14" fill="#FFFFFF" stroke="#E6E9EF" stroke-width="1.2"/>
+    <rect x="48" y="103" width="94" height="25" rx="12.5" fill="#0E7C86"/>
+    <text x="95" y="120.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#FFFFFF" letter-spacing="1.5">TRACK 1</text>
+    <text x="156" y="121" font-size="17" font-weight="700" fill="#0F172A">Customer Understanding</text>
+    <text x="48" y="152" font-size="13.5" font-style="italic" fill="#0E7C86">&#8220;Who are our customers?&#8221;</text>
+
+    <circle cx="54" cy="178" r="3" fill="#0E7C86"/>
+    <text x="66" y="182" font-size="13" font-weight="600" fill="#1F2937">Latent Factor Modeling (NMF)</text>
+    <text x="372" y="182" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="182" font-size="13" fill="#64748B">discover behavioral dimensions</text>
+
+    <circle cx="54" cy="206" r="3" fill="#0E7C86"/>
+    <text x="66" y="210" font-size="13" font-weight="600" fill="#1F2937">Clustering (K-Means)</text>
+    <text x="372" y="210" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="210" font-size="13" fill="#64748B">derive actionable segments</text>
+
+    <circle cx="54" cy="234" r="3" fill="#0E7C86"/>
+    <text x="66" y="238" font-size="13" font-weight="600" fill="#1F2937">Stability Validation</text>
+    <text x="372" y="238" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="238" font-size="13" fill="#64748B">ensure the segments are trustworthy</text>
+
+    <rect x="48" y="256" width="804" height="27" rx="7" fill="#0E7C86" fill-opacity="0.09"/>
+    <text x="60" y="273.5" font-size="12.5" fill="#0B6B73"><tspan font-weight="700">Output:</tspan> customer profiles for marketing strategy</text>
+
+    <!-- Track 2 card -->
+    <rect x="28" y="312" width="844" height="232" rx="14" fill="#FFFFFF" stroke="#E6E9EF" stroke-width="1.2"/>
+    <rect x="48" y="329" width="94" height="25" rx="12.5" fill="#6D28D9"/>
+    <text x="95" y="346.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="#FFFFFF" letter-spacing="1.5">TRACK 2</text>
+    <text x="156" y="347" font-size="17" font-weight="700" fill="#0F172A">Causal Targeting</text>
+    <text x="48" y="378" font-size="13.5" font-style="italic" fill="#6D28D9">&#8220;Who should we target?&#8221;</text>
+
+    <circle cx="54" cy="404" r="3" fill="#6D28D9"/>
+    <text x="66" y="408" font-size="13" font-weight="600" fill="#1F2937">Heterogeneous Treatment Effects</text>
+    <text x="372" y="408" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="408" font-size="13" fill="#64748B">per-customer campaign effect</text>
+
+    <circle cx="54" cy="432" r="3" fill="#6D28D9"/>
+    <text x="66" y="436" font-size="13" font-weight="600" fill="#1F2937">Validation &amp; Refutation</text>
+    <text x="372" y="436" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="436" font-size="13" fill="#64748B">stress-test the HTE estimates</text>
+
+    <circle cx="54" cy="460" r="3" fill="#6D28D9"/>
+    <text x="66" y="464" font-size="13" font-weight="600" fill="#1F2937">Policy Learning</text>
+    <text x="372" y="464" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="464" font-size="13" fill="#64748B">optimal targeting rule</text>
+
+    <circle cx="54" cy="488" r="3" fill="#6D28D9"/>
+    <text x="66" y="492" font-size="13" font-weight="600" fill="#1F2937">ROI Optimization</text>
+    <text x="372" y="492" font-size="13" fill="#94A3B8">→</text>
+    <text x="396" y="492" font-size="13" fill="#64748B">maximize campaign profit</text>
+
+    <rect x="48" y="508" width="804" height="27" rx="7" fill="#6D28D9" fill-opacity="0.09"/>
+    <text x="60" y="525.5" font-size="12.5" fill="#5B21B6"><tspan font-weight="700">Output:</tspan> a data-driven targeting policy</text>
+  </g>
+</svg>

@@ -65,38 +65,7 @@
 
 This project brings two questions into a single pipeline: the classic segmentation question *"who are our customers?"* and the causal question *"how much does this campaign actually move each customer?"*
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         2-TRACK FRAMEWORK                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  TRACK 1: CUSTOMER UNDERSTANDING                                            │
-│  ════════════════════════════════                                           │
-│                                                                             │
-│  "Who are our customers?"                                                   │
-│                                                                             │
-│  • Latent Factor Modeling (NMF)   → discover behavioral dimensions          │
-│  • Clustering (K-Means)           → derive actionable segments              │
-│  • Stability Validation           → ensure the segments are trustworthy     │
-│                                                                             │
-│  Output: customer profiles for marketing strategy                          │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  TRACK 2: CAUSAL TARGETING                                                  │
-│  ═════════════════════════                                                  │
-│                                                                             │
-│  "Who should we target?"                                                    │
-│                                                                             │
-│  • Heterogeneous Treatment Effects → per-customer campaign effect           │
-│  • Validation & Refutation         → stress-test the HTE estimates          │
-│  • Policy Learning                 → optimal targeting rule                  │
-│  • ROI Optimization                → maximize campaign profit               │
-│                                                                             │
-│  Output: a data-driven targeting policy                                    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+![2-Track Framework](assets/2track_framework_en.svg)
 
 **Why do we need both tracks?**
 
@@ -129,13 +98,7 @@ This project brings two questions into a single pipeline: the classic segmentati
 
 **Business impact (on the 486-customer analysis cohort; hypothesis-generating):**
 
-```
-Full targeting (100%, 486):   -$4,659 loss
-    ↓ negative responders cancel out the positive effects
-Optimal targeting (31.3%, 152): +$2,426 profit
-    ↓ exclude the negative-CATE customers
-Improvement:                  +$7,085 (+200pp ROI)
-```
+![Business impact: −$4,659 → +$2,426 → +$7,085](assets/business_impact_en.svg)
 
 ---
 

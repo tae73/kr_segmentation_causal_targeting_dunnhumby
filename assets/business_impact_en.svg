@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 410" width="760" height="410" role="img" aria-label="Business impact: full targeting loss vs optimal targeting profit and the improvement">
+  <rect x="1.5" y="1.5" width="757" height="407" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <g font-family="'Helvetica Neue','Segoe UI','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif">
+    <text x="380" y="40" text-anchor="middle" font-size="18" font-weight="800" fill="#0F172A" letter-spacing="1">Business Impact</text>
+    <text x="380" y="60" text-anchor="middle" font-size="11.5" fill="#64748B">analysis cohort of 486 · hypothesis-generating estimate</text>
+
+    <!-- Row 1: Full targeting (loss) -->
+    <rect x="30" y="80" width="700" height="68" rx="12" fill="#FEF2F2" stroke="#FECACA" stroke-width="1.2"/>
+    <text x="52" y="112" font-size="15" font-weight="700" fill="#0F172A">Full targeting</text>
+    <text x="52" y="132" font-size="11.5" fill="#94A3B8">100%  ·  486 customers</text>
+    <text x="708" y="110" text-anchor="end" font-size="21" font-weight="800" fill="#DC2626">&#8722;$4,659</text>
+    <text x="708" y="132" text-anchor="end" font-size="11.5" font-weight="600" fill="#B91C1C">ROI &#8722;75%</text>
+
+    <text x="380" y="173" text-anchor="middle" font-size="12.5" font-style="italic" fill="#64748B">↓  negative responders cancel out the positive effects</text>
+
+    <!-- Row 2: Optimal targeting (profit) -->
+    <rect x="30" y="192" width="700" height="68" rx="12" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1.2"/>
+    <text x="52" y="224" font-size="15" font-weight="700" fill="#0F172A">Optimal targeting</text>
+    <text x="52" y="244" font-size="11.5" fill="#94A3B8">31.3%  ·  152 customers</text>
+    <text x="708" y="222" text-anchor="end" font-size="21" font-weight="800" fill="#16A34A">+$2,426</text>
+    <text x="708" y="244" text-anchor="end" font-size="11.5" font-weight="600" fill="#15803D">ROI +125%</text>
+
+    <text x="380" y="285" text-anchor="middle" font-size="12.5" font-style="italic" fill="#64748B">↓  exclude the negative-CATE customers</text>
+
+    <!-- Row 3: Improvement (highlight) -->
+    <rect x="30" y="304" width="700" height="72" rx="12" fill="#4F46E5"/>
+    <text x="52" y="337" font-size="15" font-weight="700" fill="#FFFFFF">Improvement</text>
+    <text x="52" y="357" font-size="11.5" fill="#C7D2FE">optimal vs. full targeting</text>
+    <text x="708" y="336" text-anchor="end" font-size="22" font-weight="800" fill="#FFFFFF">+$7,085</text>
+    <text x="708" y="357" text-anchor="end" font-size="11.5" font-weight="600" fill="#C7D2FE">+200pp ROI</text>
+  </g>
+</svg>

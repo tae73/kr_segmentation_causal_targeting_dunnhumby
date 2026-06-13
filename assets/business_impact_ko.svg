@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 410" width="760" height="410" role="img" aria-label="비즈니스 임팩트: 전체 타겟팅 손실 대비 최적 타겟팅 수익과 개선 효과">
+  <rect x="1.5" y="1.5" width="757" height="407" rx="18" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+  <g font-family="'Apple SD Gothic Neo','Malgun Gothic','Pretendard','Helvetica Neue',system-ui,sans-serif">
+    <text x="380" y="40" text-anchor="middle" font-size="18" font-weight="800" fill="#0F172A" letter-spacing="1">비즈니스 임팩트</text>
+    <text x="380" y="60" text-anchor="middle" font-size="11.5" fill="#64748B">분석 코호트 486명 · 가설 생성적 추정</text>
+
+    <!-- Row 1: 전체 타겟팅 (손실) -->
+    <rect x="30" y="80" width="700" height="68" rx="12" fill="#FEF2F2" stroke="#FECACA" stroke-width="1.2"/>
+    <text x="52" y="112" font-size="15" font-weight="700" fill="#0F172A">전체 타겟팅</text>
+    <text x="52" y="132" font-size="11.5" fill="#94A3B8">100%  ·  486명</text>
+    <text x="708" y="110" text-anchor="end" font-size="21" font-weight="800" fill="#DC2626">&#8722;$4,659</text>
+    <text x="708" y="132" text-anchor="end" font-size="11.5" font-weight="600" fill="#B91C1C">ROI &#8722;75%</text>
+
+    <text x="380" y="173" text-anchor="middle" font-size="12.5" font-style="italic" fill="#64748B">↓  음의 반응 고객이 양의 효과를 상쇄</text>
+
+    <!-- Row 2: 최적 타겟팅 (수익) -->
+    <rect x="30" y="192" width="700" height="68" rx="12" fill="#F0FDF4" stroke="#BBF7D0" stroke-width="1.2"/>
+    <text x="52" y="224" font-size="15" font-weight="700" fill="#0F172A">최적 타겟팅</text>
+    <text x="52" y="244" font-size="11.5" fill="#94A3B8">31.3%  ·  152명</text>
+    <text x="708" y="222" text-anchor="end" font-size="21" font-weight="800" fill="#16A34A">+$2,426</text>
+    <text x="708" y="244" text-anchor="end" font-size="11.5" font-weight="600" fill="#15803D">ROI +125%</text>
+
+    <text x="380" y="285" text-anchor="middle" font-size="12.5" font-style="italic" fill="#64748B">↓  음의 CATE 고객 제외</text>
+
+    <!-- Row 3: 개선 효과 (하이라이트) -->
+    <rect x="30" y="304" width="700" height="72" rx="12" fill="#4F46E5"/>
+    <text x="52" y="337" font-size="15" font-weight="700" fill="#FFFFFF">개선 효과</text>
+    <text x="52" y="357" font-size="11.5" fill="#C7D2FE">최적 vs 전체 타겟팅</text>
+    <text x="708" y="336" text-anchor="end" font-size="22" font-weight="800" fill="#FFFFFF">+$7,085</text>
+    <text x="708" y="357" text-anchor="end" font-size="11.5" font-weight="600" fill="#C7D2FE">+200pp ROI</text>
+  </g>
+</svg>
