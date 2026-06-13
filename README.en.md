@@ -393,43 +393,7 @@ Dataset documentation and source: [data/dunnhumby/README.md](data/dunnhumby/READ
 
 ### Analysis Pipeline
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│                    ANALYSIS PIPELINE                           │
-├────────────────────────────────────────────────────────────────┤
-│                                                                │
-│  [Transaction Data: 2.6M transactions]                         │
-│        │                                                       │
-│        ▼                                                       │
-│  ┌─────────────────┐                                           │
-│  │ Feature Eng.    │ → 33 Customer Features                    │
-│  │ (RFM, Category) │   (Recency, Frequency, Monetary,          │
-│  └────────┬────────┘    Behavioral, Category, Time)            │
-│           │                                                    │
-│    ┌──────┴──────┐                                             │
-│    ▼             ▼                                             │
-│ [TRACK 1]     [TRACK 2]                                        │
-│    │             │                                             │
-│    ▼             ▼                                             │
-│ ┌──────┐    ┌──────────┐                                       │
-│ │ NMF  │    │ PS Model │ → Positivity Check (AUC=0.989)        │
-│ │(k=5) │    │(XGBoost) │                                       │
-│ └──┬───┘    └────┬─────┘                                       │
-│    │             │                                             │
-│    ▼             ▼                                             │
-│ ┌───────┐   ┌───────────┐                                      │
-│ │K-Means│   │CATE Models│ → S/T/X-Learner, DML, CausalForest   │
-│ │(k=7)  │   │(6 models) │   + Optuna 100 trials tuning         │
-│ └──┬────┘   └────┬──────┘                                      │
-│    │             │                                             │
-│    ▼             ▼                                             │
-│ [7 Segments] ─→ [Moderator] ─→ [Policy Learning]               │
-│                                      │                         │
-│                                      ▼                         │
-│                              [Optimal 31% Targeting]           │
-│                              → $2,426 profit (125% ROI)        │
-└────────────────────────────────────────────────────────────────┘
-```
+![Analysis Pipeline](assets/analysis_pipeline_en.svg)
 
 **Temporal split**: pre-period weeks 1–31 (build covariates), campaign/outcome weeks 32–102.
 

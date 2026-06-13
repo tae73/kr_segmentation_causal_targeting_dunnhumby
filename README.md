@@ -391,43 +391,7 @@ kr_segmentation_causal_targeting_dunnhumby/
 
 ### Analysis Pipeline
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│                    ANALYSIS PIPELINE                           │
-├────────────────────────────────────────────────────────────────┤
-│                                                                │
-│  [Transaction Data: 260만 거래]                                 │
-│        │                                                       │
-│        ▼                                                       │
-│  ┌─────────────────┐                                           │
-│  │ Feature Eng.    │ → 33 Customer Features                    │
-│  │ (RFM, Category) │   (Recency, Frequency, Monetary,          │
-│  └────────┬────────┘    Behavioral, Category, Time)            │
-│           │                                                    │
-│    ┌──────┴──────┐                                             │
-│    ▼             ▼                                             │
-│ [TRACK 1]     [TRACK 2]                                        │
-│    │             │                                             │
-│    ▼             ▼                                             │
-│ ┌──────┐    ┌──────────┐                                       │
-│ │ NMF  │    │ PS Model │ → Positivity Check (AUC=0.989)        │
-│ │(k=5) │    │(XGBoost) │                                       │
-│ └──┬───┘    └────┬─────┘                                       │
-│    │             │                                             │
-│    ▼             ▼                                             │
-│ ┌───────┐   ┌───────────┐                                      │
-│ │K-Means│   │CATE Models│ → S/T/X-Learner, DML, CausalForest   │
-│ │(k=7)  │   │(6 models) │   + Optuna 100 trials tuning         │
-│ └──┬────┘   └────┬──────┘                                      │
-│    │             │                                             │
-│    ▼             ▼                                             │
-│ [7 Segments] ─→ [Moderator] ─→ [Policy Learning]               │
-│                                      │                         │
-│                                      ▼                         │
-│                              [Optimal 31% Targeting]           │
-│                              → $2,426 profit (125% ROI)        │
-└────────────────────────────────────────────────────────────────┘
-```
+![Analysis Pipeline](assets/analysis_pipeline_ko.svg)
 
 **Temporal split**: pre-period 주 1–31 (공변량 구성), campaign/outcome 주 32–102.
 
